@@ -58,8 +58,12 @@ export const ConverterSection: React.FC<ConverterSectionProps> = ({
                     </div>
 
                     <Input
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value === '' ? '' : Number(e.target.value))}
+                        value={amount === '' ? '' : new Intl.NumberFormat('es-CL').format(amount)}
+                        onChange={(e) => {
+                            // Remove dots and everything that is not a number
+                            const cleanValue = e.target.value.replace(/\./g, '').replace(/[^0-9]/g, '');
+                            setAmount(cleanValue === '' ? '' : Number(cleanValue));
+                        }}
                     />
 
                     <ConversionResult value={result} />

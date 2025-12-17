@@ -29,8 +29,11 @@ export function useCurrency() {
     }, []);
 
     const result = useMemo(() => {
-        if (!amount || !ufValue) return '$ 0';
         const numAmount = Number(amount);
+        if (!numAmount || !ufValue) {
+            return isUfToClp ? '$ 0' : '0.00 UF';
+        }
+
         return isUfToClp
             ? new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(numAmount * ufValue)
             : (numAmount / ufValue).toFixed(2) + ' UF';

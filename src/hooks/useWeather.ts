@@ -21,9 +21,20 @@ export function useWeather() {
         setLoading(true);
         setError(null);
 
+        const fetchFallback = async () => {
+            try {
+                // Fallback to Santiago, Chile
+                const data = await APIService.getWeather(-33.4489, -70.6693);
+                setWeatherData(data);
+            } catch (e) {
+                setError("No se pudo obtener el clima.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
         if (!navigator.geolocation) {
-            setError("Geolocalización no soportada.");
-            setLoading(false);
+            fetchFallback();
             return;
         }
 
@@ -38,15 +49,15 @@ export function useWeather() {
                     }));
                 } catch (e) {
                     console.error(e);
-                    setError(e instanceof Error ? e.message : "Error al cargar clima");
+                    // If API fails with coords, try fallback or just show error
+                    fetchFallback();
                 } finally {
                     setLoading(false);
                 }
             },
             (err) => {
-                console.error(err);
-                setLoading(false);
-                setError("Permiso de ubicación denegado.");
+                console.warn("Geolocation failed, using fallback:", err);
+                fetchFallback();
             }
         );
     };
