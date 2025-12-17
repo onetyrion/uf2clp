@@ -2,11 +2,15 @@
 import Layout from '../layouts/Layout.astro';
 import { Navbar } from '../components/organisms/Navbar';
 import { Dashboard } from '../components/templates/Dashboard';
+import { ContentSection } from '../components/organisms/ContentSection';
+import { PWAInstallGuide } from '../components/molecules/PWAInstallGuide';
 ---
 
 <Layout title="Calculadora UF a CLP | Valor UF Hoy en Chile | uf2clp.cl">
 	<Navbar client:load />
 	<Dashboard client:load />
+    <PWAInstallGuide client:only="react" />
+    <ContentSection client:visible />
 	<footer class="text-center py-10 opacity-30 text-sm hover:opacity-100 transition-opacity duration-300">
 		<a href="https://github.com/onetyrion" target="_blank" rel="noopener noreferrer" class="hover:text-blue-500 transition-colors">
 			Creado por @onetyrion

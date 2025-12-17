@@ -13,8 +13,11 @@ export function useWeather() {
             const parsed = JSON.parse(cached);
             if ((Date.now() - parsed.timestamp) < 1800000) { // 30 mins
                 setWeatherData(parsed.data);
+                return;
             }
         }
+        // If no cache or expired, fetch automatically
+        requestWeather();
     }, []);
 
     const requestWeather = () => {
@@ -25,6 +28,8 @@ export function useWeather() {
             try {
                 // Fallback to Santiago, Chile
                 const data = await APIService.getWeather(-33.4489, -70.6693);
+                // Override name to avoid confusion (API returns "Barrio Brazil")
+                data.city = "Santiago";
                 setWeatherData(data);
             } catch (e) {
                 setError("No se pudo obtener el clima.");
@@ -56,7 +61,7 @@ export function useWeather() {
                 }
             },
             (err) => {
-                console.warn("Geolocation failed, using fallback:", err);
+                // Silently fail and use fallback
                 fetchFallback();
             }
         );
