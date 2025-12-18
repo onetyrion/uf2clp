@@ -11,6 +11,13 @@ const { title } = Astro.props;
 <!doctype html>
 <html lang="es" class="scroll-smooth dark">
 <head>
+  <!-- Google Tag Manager -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-MFGCC357');</script>
+  <!-- End Google Tag Manager -->
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width" />
 	<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -71,6 +78,10 @@ const { title } = Astro.props;
     <script src="/src/pwa.ts"></script>
 </head>
 <body class="transition-colors duration-500 bg-slate-100 dark:bg-gradient-to-br dark:from-slate-950 dark:to-slate-900 min-h-screen text-slate-900 dark:text-white font-sans">
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MFGCC357"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
 	<slot />
 </body>
 </html>
