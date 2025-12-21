@@ -8,7 +8,7 @@ export const Navbar = () => {
             </h1>
             <div className="flex items-center gap-4">
                 <InstallButton />
-                {/* <ThemeToggle /> */}
+
             </div>
         </nav>
     );

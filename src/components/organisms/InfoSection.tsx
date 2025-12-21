@@ -3,8 +3,8 @@ import { Card } from '../atoms/Card';
 import { Subheading, Label } from '../atoms/Typography';
 import { WeatherCondition } from '../molecules/WeatherCondition';
 import { Button } from '../atoms/Button';
-import { useStore } from '@nanostores/react';
-import { $theme } from '../../stores/themeStore';
+
+
 import { Line } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
@@ -60,7 +60,7 @@ export const InfoSection: React.FC<InfoSectionProps> = ({ history, weatherData, 
         }]
     };
 
-    const theme = useStore($theme);
+
 
     const chartOptions = {
         responsive: true,
@@ -104,7 +104,7 @@ export const InfoSection: React.FC<InfoSectionProps> = ({ history, weatherData, 
                     display: false, // Cleaner look without vertical lines
                 },
                 ticks: {
-                    color: theme === 'dark' ? 'rgba(255, 255, 255, 0.5)' : '#94a3b8',
+                    color: 'rgba(255, 255, 255, 0.5)',
                     font: { size: 10 }
                 },
                 border: { display: false }
@@ -112,10 +112,10 @@ export const InfoSection: React.FC<InfoSectionProps> = ({ history, weatherData, 
             y: {
                 display: true,
                 grid: {
-                    color: theme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+                    color: 'rgba(255, 255, 255, 0.05)',
                 },
                 ticks: {
-                    color: theme === 'dark' ? 'rgba(255, 255, 255, 0.5)' : '#94a3b8',
+                    color: 'rgba(255, 255, 255, 0.5)',
                     font: { size: 10 },
                     maxTicksLimit: 6, // Limit number of labels to avoid crowding
                     callback: function (value: any) {
