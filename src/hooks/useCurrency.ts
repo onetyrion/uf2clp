@@ -34,13 +34,19 @@ export function useCurrency() {
             return isUfToClp ? '$ 0' : '0.00 UF';
         }
 
-        return isUfToClp
-            ? new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(numAmount * ufValue)
-            : (numAmount / ufValue).toFixed(2) + ' UF';
+        if (isUfToClp) {
+            return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(Math.round(numAmount * ufValue));
+        }
+        return (numAmount / ufValue).toFixed(2) + ' UF';
     }, [amount, ufValue, isUfToClp]);
 
     const formattedUF = useMemo(() => {
-        return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(ufValue);
+        return new Intl.NumberFormat('es-CL', {
+            style: 'currency',
+            currency: 'CLP',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(ufValue);
     }, [ufValue]);
 
     return {
