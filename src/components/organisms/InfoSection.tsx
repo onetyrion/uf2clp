@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Card } from '../atoms/Card';
 import { Subheading, Label } from '../atoms/Typography';
 import { WeatherCondition } from '../molecules/WeatherCondition';
 import { Button } from '../atoms/Button';
-
+import { crosshairPlugin } from '../molecules/ChartPlugins';
+import type { DateRange } from '../../hooks/useCurrency';
 
 import { Line } from 'react-chartjs-2';
 import {
@@ -15,7 +16,8 @@ import {
     Title,
     Tooltip,
     Legend,
-    Filler
+    Filler,
+    type ScriptableContext
 } from 'chart.js';
 import type { UFData, WeatherData } from '../../services/api';
 
@@ -27,7 +29,8 @@ ChartJS.register(
     Title,
     Tooltip,
     Legend,
-    Filler
+    Filler,
+    crosshairPlugin
 );
 
 interface InfoSectionProps {
@@ -36,9 +39,28 @@ interface InfoSectionProps {
     weatherLoading: boolean;
     weatherError: string | null;
     requestWeather: () => void;
+    range: DateRange;
+    setRange: (range: DateRange) => void;
 }
 
-export const InfoSection: React.FC<InfoSectionProps> = ({ history, weatherData, weatherLoading, weatherError, requestWeather }) => {
+export const InfoSection: React.FC<InfoSectionProps> = ({
+    history,
+    weatherData,
+    weatherLoading,
+    weatherError,
+    requestWeather,
+    range,
+    setRange
+}) => {
+
+    const chartRef = useRef<any>(null);
+
+    const rangeLabels: Record<DateRange, string> = {
+        '1M': '1M',
+        '3M': '3M',
+        '6M': '6M',
+        '1Y': '1A'
+    };
 
     const chartData = {
         labels: history.map(h => {
@@ -47,20 +69,33 @@ export const InfoSection: React.FC<InfoSectionProps> = ({ history, weatherData, 
         }),
         datasets: [{
             data: history.map(h => h.valor),
-            borderColor: '#2563eb',
-            borderWidth: 3,
+            borderColor: '#22c55e', // Green-500
+            borderWidth: 2,
             fill: true,
-            backgroundColor: 'rgba(37, 99, 235, 0.1)',
-            tension: 0.4,
-            pointRadius: 4, // Make points slightly visible for interaction
-            pointBackgroundColor: '#2563eb',
-            pointBorderColor: '#fff',
-            pointBorderWidth: 2,
+            backgroundColor: (context: ScriptableContext<'line'>) => {
+                const chart = context.chart;
+                const ctx = chart.ctx;
+                const chartArea = chart.chartArea;
+
+                if (!chartArea) {
+                    // Fallback if chartArea not yet ready
+                    return 'rgba(34, 197, 94, 0.2)';
+                }
+
+                const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                gradient.addColorStop(0, 'rgba(34, 197, 94, 0.5)'); // Start with visible green
+                gradient.addColorStop(0.8, 'rgba(34, 197, 94, 0.1)'); // Fade mostly out near bottom
+                gradient.addColorStop(1, 'rgba(34, 197, 94, 0)');   // Completely transparent at bottom
+                return gradient;
+            },
+            tension: 0.4, // Smoother curve (not straight lines)
+            pointRadius: 0,
             pointHoverRadius: 6,
+            pointHoverBackgroundColor: '#22c55e',
+            pointHoverBorderColor: '#fff',
+            pointHoverBorderWidth: 2,
         }]
     };
-
-
 
     const chartOptions = {
         responsive: true,
@@ -72,40 +107,53 @@ export const InfoSection: React.FC<InfoSectionProps> = ({ history, weatherData, 
         plugins: {
             legend: { display: false as const },
             tooltip: {
-                backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                titleColor: '#fff',
-                bodyColor: '#cbd5e1',
-                padding: 14,
-                cornerRadius: 12,
-                displayColors: false, // Hide the little color box
+                backgroundColor: '#ffffff',
+                titleColor: '#1e293b',
+                bodyColor: '#0f172a',
+                padding: 10,
+                cornerRadius: 8,
+                displayColors: false,
                 titleFont: {
-                    size: 14,
-                    weight: 'bold' as const,
-                    family: "'Inter', sans-serif"
+                    size: 13,
+                    family: "'Inter', sans-serif",
+                    weight: 'normal' as const
                 },
                 bodyFont: {
-                    size: 13,
-                    family: "'Inter', sans-serif"
+                    size: 14,
+                    family: "'Inter', sans-serif",
+                    weight: 'bold' as const
                 },
                 callbacks: {
                     title: function (context: any) {
-                        return `Día ${context[0].label}`;
+                        // Title: "23 dic 2025"
+                        // Assuming label is "23 dic" - we might want to pass full date in label or access raw data
+                        // For simplicity, let's just use the label
+                        return context[0].label;
                     },
                     label: function (context: any) {
-                        return `Valor: ${new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(context.raw)}`;
+                        // Value: "39.697,26"
+                        return new Intl.NumberFormat('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(context.raw);
                     }
-                }
-            }
+                },
+                // Add shadow to tooltip using external CSS or canvas if needed. ChartJS default doesn't support complex shadows well,
+                // but we can rely on border/color contrast first.
+                borderColor: '#e2e8f0',
+                borderWidth: 1,
+            },
+            crosshair: true // Enable our custom plugin
         },
         scales: {
             x: {
                 display: true,
                 grid: {
-                    display: false, // Cleaner look without vertical lines
+                    display: false,
                 },
                 ticks: {
-                    color: 'rgba(255, 255, 255, 0.5)',
-                    font: { size: 10 }
+                    color: '#94a3b8',
+                    font: { size: 10 },
+                    maxRotation: 0,
+                    autoSkip: true,
+                    maxTicksLimit: 6
                 },
                 border: { display: false }
             },
@@ -113,13 +161,14 @@ export const InfoSection: React.FC<InfoSectionProps> = ({ history, weatherData, 
                 display: true,
                 grid: {
                     color: 'rgba(255, 255, 255, 0.05)',
+                    drawBorder: false,
                 },
                 ticks: {
-                    color: 'rgba(255, 255, 255, 0.5)',
+                    color: '#94a3b8',
                     font: { size: 10 },
-                    maxTicksLimit: 6, // Limit number of labels to avoid crowding
+                    maxTicksLimit: 5,
                     callback: function (value: any) {
-                        return new Intl.NumberFormat('es-CL').format(value); // Just numbers, no $ sign for cleaner look
+                        return new Intl.NumberFormat('es-CL').format(value);
                     }
                 },
                 border: { display: false }
@@ -127,12 +176,31 @@ export const InfoSection: React.FC<InfoSectionProps> = ({ history, weatherData, 
         }
     };
 
+    const ranges: DateRange[] = ['1M', '3M', '6M', '1Y'];
+
     return (
         <section className="space-y-6">
             <Card className="p-6">
-                <Subheading>Tendencia UF</Subheading>
-                <div className="h-[200px]">
-                    {history.length > 0 && <Line data={chartData} options={chartOptions} />}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                    {/* Placeholder for Title or Stats if needed, empty for now to match clean look */}
+                    <div className="flex gap-2">
+                        {ranges.map((r) => (
+                            <button
+                                key={r}
+                                onClick={() => setRange(r)}
+                                className={`px-3 py-1 rounded text-sm font-medium transition-colors ${range === r
+                                    ? 'bg-slate-700 text-white'
+                                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                                    }`}
+                            >
+                                {rangeLabels[r]}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="h-[250px]">
+                    {history.length > 0 && <Line ref={chartRef} data={chartData} options={chartOptions} />}
                 </div>
             </Card>
 

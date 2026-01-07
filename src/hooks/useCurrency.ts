@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { APIService, type UFData } from '../services/api';
 
+export type DateRange = '1M' | '3M' | '6M' | '1Y';
+
 export function useCurrency() {
     const [ufValue, setUfValue] = useState<number>(0);
     const [history, setHistory] = useState<UFData[]>([]);
@@ -9,24 +11,74 @@ export function useCurrency() {
     const [amount, setAmount] = useState<number | ''>(1);
     const [isUfToClp, setIsUfToClp] = useState(true);
     const [dateStr, setDateStr] = useState('');
+    const [range, setRange] = useState<DateRange>('1M');
 
+    const [fullHistory, setFullHistory] = useState<UFData[]>([]);
+
+    // Initial fetch of ALL data
     useEffect(() => {
-        setLoading(true);
-        setError(null);
-        APIService.getUF().then(data => {
-            const current = data.serie[0];
-            setUfValue(current.valor);
-            setHistory(data.serie.slice(0, 10).reverse());
-            setDateStr(new Date(current.fecha).toLocaleDateString('es-CL', {
-                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-            }));
-            setLoading(false);
-        }).catch(err => {
-            console.error(err);
-            setError("Error al obtener valor UF");
-            setLoading(false);
-        });
-    }, []);
+        const fetchAllData = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                // 1. Fetch current data (last 30 days default) to get today's value quickly
+                const responseDefault = await APIService.getUF();
+                const currentData = responseDefault.serie;
+                const current = currentData[0];
+                setUfValue(current.valor);
+
+                setDateStr(new Date(current.fecha).toLocaleDateString('es-CL', {
+                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+                }));
+
+                // 2. Fetch full history for range support (Current Year + Previous Year to support '1A')
+                const currentYear = new Date().getFullYear();
+
+                const [responseCurrent, responsePrev] = await Promise.all([
+                    fetch(`https://mindicador.cl/api/uf/${currentYear}`),
+                    fetch(`https://mindicador.cl/api/uf/${currentYear - 1}`)
+                ]);
+
+                if (!responseCurrent.ok || !responsePrev.ok) {
+                    throw new Error('Failed to fetch historical data');
+                }
+
+                const dataCurrent = await responseCurrent.json();
+                const dataPrev = await responsePrev.json();
+
+                // Combine: [newest...oldest]
+                const combinedHistory = [...dataCurrent.serie, ...dataPrev.serie];
+                setFullHistory(combinedHistory);
+
+            } catch (err) {
+                console.error(err);
+                setError("Error al obtener valor UF");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchAllData();
+    }, []); // Run ONCE on mount
+
+    // Filter history based on selected range (derived state)
+    useEffect(() => {
+        if (fullHistory.length === 0) return;
+
+        let filtered = [...fullHistory];
+
+        if (range === '1M') {
+            filtered = filtered.slice(0, 30);
+        } else if (range === '3M') {
+            filtered = filtered.slice(0, 90);
+        } else if (range === '6M') {
+            filtered = filtered.slice(0, 180);
+        } else if (range === '1Y') {
+            filtered = filtered.slice(0, 365);
+        }
+
+        setHistory(filtered.reverse());
+    }, [range, fullHistory]);
 
     const result = useMemo(() => {
         const numAmount = Number(amount);
@@ -60,6 +112,8 @@ export function useCurrency() {
         setIsUfToClp,
         result,
         dateStr,
-        error
+        error,
+        range,
+        setRange
     };
 }
