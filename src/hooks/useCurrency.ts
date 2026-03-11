@@ -35,19 +35,12 @@ export function useCurrency() {
                 const currentYear = new Date().getFullYear();
 
                 const [responseCurrent, responsePrev] = await Promise.all([
-                    fetch(`https://mindicador.cl/api/uf/${currentYear}`),
-                    fetch(`https://mindicador.cl/api/uf/${currentYear - 1}`)
+                    APIService.getUFHistory(currentYear),
+                    APIService.getUFHistory(currentYear - 1)
                 ]);
 
-                if (!responseCurrent.ok || !responsePrev.ok) {
-                    throw new Error('Failed to fetch historical data');
-                }
-
-                const dataCurrent = await responseCurrent.json();
-                const dataPrev = await responsePrev.json();
-
                 // Combine: [newest...oldest]
-                const combinedHistory = [...dataCurrent.serie, ...dataPrev.serie];
+                const combinedHistory = [...responseCurrent.serie, ...responsePrev.serie];
                 setFullHistory(combinedHistory);
 
             } catch (err) {

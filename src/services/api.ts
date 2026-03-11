@@ -17,19 +17,19 @@ export interface WeatherData {
 
 export const APIService = {
     async getUF(): Promise<UFResponse> {
-        const res = await fetch('https://mindicador.cl/api/uf');
+        const res = await fetch('/api/uf');
         if (!res.ok) throw new Error('Failed to fetch UF data');
         return res.json();
     },
 
+    async getUFHistory(year: number): Promise<UFResponse> {
+        const res = await fetch(`/api/uf?year=${year}`);
+        if (!res.ok) throw new Error('Failed to fetch historical data');
+        return res.json();
+    },
+
     async getWeather(lat: number, lon: number): Promise<WeatherData> {
-        const apiKey = import.meta.env.PUBLIC_WEATHER_API_KEY;
-
-        if (!apiKey) {
-            throw new Error('Weather API Key is missing. Please add PUBLIC_WEATHER_API_KEY to your .env file.');
-        }
-
-        const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&lang=es&appid=${apiKey}`);
+        const res = await fetch(`/api/weather?lat=${lat}&lon=${lon}`);
         if (!res.ok) throw new Error('Failed to fetch weather data');
         const data = await res.json();
 
