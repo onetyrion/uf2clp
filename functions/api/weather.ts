@@ -29,9 +29,9 @@ export async function onRequest(context: any) {
   const ttl = 1800; // 30 minutos de caché para el clima
   
   // 1. Intentar obtener de KV CACHE
-  if (env.API_CACHE) {
+  if (env.kv_uf2clp) {
     try {
-      const cachedData = await env.API_CACHE.get(cacheKey, "json");
+      const cachedData = await env.kv_uf2clp.get(cacheKey, "json");
       if (cachedData) {
         return new Response(JSON.stringify(cachedData), {
           status: 200,
@@ -74,9 +74,9 @@ export async function onRequest(context: any) {
     const data = await response.json();
 
     // 3. Guardar en KV CACHE
-    if (env.API_CACHE) {
+    if (env.kv_uf2clp) {
         try {
-          await env.API_CACHE.put(cacheKey, JSON.stringify(data), { expirationTtl: ttl });
+          await env.kv_uf2clp.put(cacheKey, JSON.stringify(data), { expirationTtl: ttl });
         } catch (e) {
           console.error("Error escribiendo clima en KV Cache:", e);
         }
