@@ -1,13 +1,38 @@
 export async function onRequest(context: any) {
-  const { request } = context;
+  const { request, env } = context;
   const url = new URL(request.url);
   const year = url.searchParams.get("year");
 
   let apiUrl = "https://mindicador.cl/api/uf";
+  let cacheKey = "uf_current";
+  let ttl = 3600; // 1 hora de caché para el valor actual
+
   if (year) {
     apiUrl = `${apiUrl}/${year}`;
+    cacheKey = `uf_${year}`;
+    ttl = 86400; // 1 día de caché para datos históricos de años que ya pasaron
   }
 
+  // 1. Intentar obtener desde KV CACHE
+  if (env.API_CACHE) {
+    try {
+      const cachedData = await env.API_CACHE.get(cacheKey, "json");
+      if (cachedData) {
+        return new Response(JSON.stringify(cachedData), {
+          status: 200,
+          headers: { 
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "X-Cache": "HIT"
+          }
+        });
+      }
+    } catch (e) {
+      console.error("Error leyendo desde KV Cache:", e);
+    }
+  }
+
+  // 2. Si no hay cache, hacer fetch a la API externa
   try {
     const response = await fetch(apiUrl);
     
@@ -19,11 +44,22 @@ export async function onRequest(context: any) {
     }
 
     const data = await response.json();
+
+    // 3. Guardar el resultado en KV CACHE
+    if (env.API_CACHE) {
+      try {
+        await env.API_CACHE.put(cacheKey, JSON.stringify(data), { expirationTtl: ttl });
+      } catch (e) {
+        console.error("Error escribiendo en KV Cache:", e);
+      }
+    }
+
     return new Response(JSON.stringify(data), {
       status: 200,
       headers: { 
         "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*" 
+        "Access-Control-Allow-Origin": "*",
+        "X-Cache": "MISS"
       }
     });
   } catch (error: any) {
