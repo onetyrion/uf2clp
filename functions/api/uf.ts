@@ -13,7 +13,7 @@ export async function onRequest(context: any) {
     ttl = 86400; // 1 día de caché para datos históricos de años que ya pasaron
   }
 
-  // 1. Intentar obtener desde KV CACHE
+  // 1. Intentar obtener desde KV CACHE 
   if (env.kv_uf2clp) {
     try {
       const cachedData = await env.kv_uf2clp.get(cacheKey, "json");
