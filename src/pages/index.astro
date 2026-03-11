@@ -11,11 +11,17 @@ import { PWAInstallGuide } from '../components/molecules/PWAInstallGuide';
 	<Dashboard client:load />
     <PWAInstallGuide client:only="react" />
     <ContentSection client:visible />
-	<footer class="text-center py-10 opacity-30 text-sm hover:opacity-100 transition-opacity duration-300">
-		<a href="https://github.com/onetyrion" target="_blank" rel="noopener noreferrer" class="hover:text-blue-500 transition-colors">
-			Creado por @onetyrion
-		</a>
-		<span class="mx-2">&bull;</span>
-		2025
+	<footer class="text-center py-10 opacity-30 text-sm hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-2">
+		<div>
+			<a href="https://github.com/onetyrion" target="_blank" rel="noopener noreferrer" class="hover:text-blue-500 transition-colors">
+				Creado por @onetyrion
+			</a>
+			<span class="mx-2">&bull;</span>
+			2025
+		</div>
+		<div class="flex gap-4 mt-2">
+			<a href="https://www.iubenda.com/privacy-policy/67905716" class="iubenda-white iubenda-noiframe iubenda-embed hover:text-blue-500 transition-colors" title="Política de Privacidad ">Política de Privacidad</a><script type="text/javascript" is:inline>(function (w,d) {var loader = function () {var s = d.createElement("script"), tag = d.getElementsByTagName("script")[0]; s.src="https://cdn.iubenda.com/iubenda.js"; tag.parentNode.insertBefore(s,tag);}; if(w.addEventListener){w.addEventListener("load", loader, false);}else if(w.attachEvent){w.attachEvent("onload", loader);}else{w.onload = loader;}})(window, document);</script>
+			<a href="https://www.iubenda.com/privacy-policy/67905716/cookie-policy" class="iubenda-white iubenda-noiframe iubenda-embed hover:text-blue-500 transition-colors" title="Política de Cookies ">Política de Cookies</a><script type="text/javascript" is:inline>(function (w,d) {var loader = function () {var s = d.createElement("script"), tag = d.getElementsByTagName("script")[0]; s.src="https://cdn.iubenda.com/iubenda.js"; tag.parentNode.insertBefore(s,tag);}; if(w.addEventListener){w.addEventListener("load", loader, false);}else if(w.attachEvent){w.attachEvent("onload", loader);}else{w.onload = loader;}})(window, document);</script>
+		</div>
 	</footer>
 </Layout>
