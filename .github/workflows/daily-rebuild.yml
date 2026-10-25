@@ -1,0 +1,32 @@
+name: Daily rebuild
+
+on:
+  schedule:
+    # 12:10 UTC => 08:10 en Chile en invierno (UTC-4) y 09:10 en verano (UTC-3).
+    # Corre después de la publicación diaria del valor de la UF.
+    - cron: '10 12 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: daily-rebuild
+  cancel-in-progress: false
+
+jobs:
+  trigger-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Cloudflare Pages deploy hook
+        env:
+          DEPLOY_HOOK_URL: ${{ secrets.CLOUDFLARE_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$DEPLOY_HOOK_URL" ]; then
+            echo "::error::Falta el secret CLOUDFLARE_DEPLOY_HOOK_URL en el repositorio."
+            exit 1
+          fi
+
+          curl --fail-with-body --silent --show-error \
+            --retry 3 --retry-delay 30 --max-time 60 \
+            -X POST "$DEPLOY_HOOK_URL"

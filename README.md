@@ -55,6 +55,18 @@ Aplicación moderna para la conversión de UF a CLP y monitoreo de indicadores e
     npm run build
     ```
 
+## 🔄 Rebuild diario (valor UF)
+
+El valor de la UF se prerenderiza en el HTML durante el build, por lo que el sitio debe reconstruirse a diario. El workflow `.github/workflows/daily-rebuild.yml` dispara el deploy hook de Cloudflare Pages todos los días (12:10 UTC, después de la publicación diaria del indicador).
+
+Para activarlo, crea un **Deploy Hook** en Cloudflare Pages (Settings → Builds & deployments → Deploy hooks) y guárdalo como secret del repositorio:
+
+```
+CLOUDFLARE_DEPLOY_HOOK_URL=https://api.cloudflare.com/client/v4/pages/webhooks/deploy_hooks/...
+```
+
+También se puede ejecutar manualmente desde **Actions → Daily rebuild → Run workflow**.
+
 ## 📂 Estructura del Proyecto
 
 ```
