@@ -1,24 +1,27 @@
 import { useState, useEffect, useMemo } from 'react';
 import { APIService, type UFData } from '../services/api';
+import { formatUfDate } from '../lib/date';
 
 export type DateRange = '1M' | '3M' | '6M' | '1Y';
 
-export function useCurrency() {
-    const [ufValue, setUfValue] = useState<number>(0);
+export function useCurrency(initialUF?: UFData | null) {
+    const hasInitialValue = Boolean(initialUF?.valor);
+    const [ufValue, setUfValue] = useState<number>(initialUF?.valor ?? 0);
     const [history, setHistory] = useState<UFData[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(!hasInitialValue);
     const [error, setError] = useState<string | null>(null);
     const [amount, setAmount] = useState<number | ''>(1);
     const [isUfToClp, setIsUfToClp] = useState(true);
-    const [dateStr, setDateStr] = useState('');
+    const [dateStr, setDateStr] = useState(initialUF ? formatUfDate(initialUF.fecha) : '');
     const [range, setRange] = useState<DateRange>('1M');
 
     const [fullHistory, setFullHistory] = useState<UFData[]>([]);
 
-    // Initial fetch of ALL data
+    // Revalidate data on mount. With a build-time value there is no blocking
+    // spinner: the server-rendered value stays visible while this runs.
     useEffect(() => {
         const fetchAllData = async () => {
-            setLoading(true);
+            if (!hasInitialValue) setLoading(true);
             setError(null);
             try {
                 // 1. Fetch current data (last 30 days default) to get today's value quickly
@@ -27,9 +30,7 @@ export function useCurrency() {
                 const current = currentData[0];
                 setUfValue(current.valor);
 
-                setDateStr(new Date(current.fecha).toLocaleDateString('es-CL', {
-                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-                }));
+                setDateStr(formatUfDate(current.fecha));
 
                 // 2. Fetch full history for range support (Current Year + Previous Year to support '1A')
                 const currentYear = new Date().getFullYear();
