@@ -20,6 +20,7 @@ import {
     type ScriptableContext
 } from 'chart.js';
 import type { UFData, WeatherData } from '../../services/api';
+import { formatUfShortDate } from '../../lib/date';
 
 ChartJS.register(
     CategoryScale,
@@ -63,10 +64,7 @@ export const InfoSection: React.FC<InfoSectionProps> = ({
     };
 
     const chartData = {
-        labels: history.map(h => {
-            const d = new Date(h.fecha);
-            return d.toLocaleDateString('es-CL', { day: 'numeric', month: 'short' });
-        }),
+        labels: history.map(h => formatUfShortDate(h.fecha)),
         datasets: [{
             data: history.map(h => h.valor),
             borderColor: '#22c55e', // Green-500

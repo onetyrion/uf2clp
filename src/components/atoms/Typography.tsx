@@ -1,10 +1,10 @@
 import React from 'react';
 import { cn } from './Card';
 
-export const Heading = ({ className, children }: { className?: string, children: React.ReactNode }) => (
-    <h2 className={cn("text-5xl md:text-6xl font-extrabold mb-2 tracking-tight text-slate-900 dark:text-white", className)}>
+export const Heading = ({ className, children, as: Tag = 'h2' }: { className?: string, children: React.ReactNode, as?: 'h1' | 'h2' }) => (
+    <Tag className={cn("text-5xl md:text-6xl font-extrabold mb-2 tracking-tight text-slate-900 dark:text-white", className)}>
         {children}
-    </h2>
+    </Tag>
 );
 
 export const Subheading = ({ className, children }: { className?: string, children: React.ReactNode }) => (

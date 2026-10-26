@@ -26,18 +26,23 @@ export const ConverterSection: React.FC<ConverterSectionProps> = ({
     return (
         <section className="space-y-8">
             <div>
-                {!loading && !error && <PulseIndicator label="VALOR HOY" />}
-
-                {error ? (
+                {error && ufValue === 0 ? (
                     <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 rounded-xl text-sm font-medium mb-2">
                         {error}
                     </div>
                 ) : (
                     <>
-                        <Heading>
+                        {!loading && <PulseIndicator label="VALOR UF HOY" />}
+                        <Heading as="h1">
+                            <span className="sr-only">Valor UF hoy en Chile: </span>
                             {loading ? <span className="opacity-20">Cargando...</span> : <span>{formattedUF}</span>}
                         </Heading>
                         <p className="opacity-60 capitalize">{dateStr}</p>
+                        {error && ufValue > 0 && (
+                            <p className="mt-2 text-xs text-amber-500">
+                                No se pudo actualizar el valor. Mostrando el último dato disponible.
+                            </p>
+                        )}
                     </>
                 )}
             </div>

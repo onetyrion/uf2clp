@@ -4,11 +4,14 @@ import { Navbar } from '../components/organisms/Navbar';
 import { Dashboard } from '../components/templates/Dashboard';
 import { ContentSection } from '../components/organisms/ContentSection';
 import { PWAInstallGuide } from '../components/molecules/PWAInstallGuide';
+import { fetchCurrentUF } from '../lib/uf';
+
+const initialUF = await fetchCurrentUF();
 ---
 
 <Layout title="Calculadora UF a CLP | Valor UF Hoy en Chile | uf2clp.cl">
 	<Navbar client:load />
-	<Dashboard client:load />
+	<Dashboard client:load initialUF={initialUF} />
     <PWAInstallGuide client:only="react" />
     <ContentSection client:visible />
 	<footer class="text-center py-10 opacity-30 text-sm hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-2">
