@@ -47,3 +47,19 @@ export function getTodayISO(): string {
         day: '2-digit',
     }).format(new Date());
 }
+
+export function formatNumericDate(fecha: string): string {
+    const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(fecha);
+    return match ? `${match[3]}/${match[2]}/${match[1]}` : '';
+}
+
+export function formatMonthYear(fecha: string): string {
+    const date = toCalendarDate(fecha);
+    if (!date) return '';
+
+    return date.toLocaleDateString('es-CL', {
+        month: 'long',
+        year: 'numeric',
+        timeZone: 'UTC',
+    });
+}

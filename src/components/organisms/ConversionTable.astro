@@ -1,0 +1,43 @@
+---
+import { Card } from '../atoms/Card';
+import { formatClp } from '../../lib/format';
+
+interface Props {
+	unit: string;
+	rate: number;
+	amounts: number[];
+	title: string;
+}
+
+const { unit, rate, amounts, title } = Astro.props;
+const amountFormatter = new Intl.NumberFormat('es-CL');
+const rows = amounts.map((amount) => ({
+	amount,
+	clp: formatClp(amount * rate),
+}));
+---
+
+<section class="space-y-4">
+	<h2 class="text-2xl font-bold text-white">{title}</h2>
+	<Card className="p-4 md:p-6 bg-slate-900/50 border-slate-800">
+		<div class="overflow-x-auto">
+			<table class="w-full text-sm text-left border-collapse">
+				<caption class="sr-only">{title}</caption>
+				<thead>
+					<tr class="text-slate-300 border-b border-white/10">
+						<th scope="col" class="py-3 px-2 font-semibold">{unit}</th>
+						<th scope="col" class="py-3 px-2 font-semibold text-right">Pesos chilenos (CLP)</th>
+					</tr>
+				</thead>
+				<tbody>
+					{rows.map((row) => (
+						<tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+							<td class="py-2.5 px-2 text-slate-300 tabular-nums">{amountFormatter.format(row.amount)} {unit}</td>
+							<td class="py-2.5 px-2 text-right font-medium text-white tabular-nums">{row.clp}</td>
+						</tr>
+					))}
+				</tbody>
+			</table>
+		</div>
+	</Card>
+</section>
