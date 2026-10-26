@@ -35,6 +35,24 @@ export const ContentSection = () => {
             </div>
 
             <article className="space-y-4">
+                <h2 className="text-2xl font-bold text-white mb-4">Historial por año</h2>
+                <p className="leading-relaxed">
+                    Consulta la tabla diaria del valor de la UF para cada año, con el resumen de valores mínimos y máximos.
+                </p>
+                <div className="flex flex-wrap gap-3 pt-1">
+                    {[2024, 2025, 2026].map((year) => (
+                        <a
+                            key={year}
+                            href={`/uf/${year}`}
+                            className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-200 bg-slate-900/50 border border-slate-800 hover:border-blue-500/50 hover:text-blue-400 transition-colors"
+                        >
+                            UF {year}
+                        </a>
+                    ))}
+                </div>
+            </article>
+
+            <article className="space-y-4">
                 <h2 className="text-2xl font-bold text-white mb-4">Preguntas Frecuentes</h2>
                 <div className="space-y-6">
                     <div>
