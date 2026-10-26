@@ -38,3 +38,12 @@ export function formatUfShortDate(fecha: string): string {
         timeZone: 'UTC',
     });
 }
+
+export function getTodayISO(): string {
+    return new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'America/Santiago',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+    }).format(new Date());
+}

@@ -1,0 +1,217 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import { Card } from '../../../components/atoms/Card';
+import { fetchUFYear } from '../../../lib/uf';
+import { formatUfDate, getTodayISO } from '../../../lib/date';
+import { UF_CURRENT_YEAR, getMonthName, getMonthSlug } from '../../../data/uf-years';
+import type { UFData } from '../../../services/api';
+
+export async function getStaticPaths() {
+	const today = getTodayISO();
+	const serie = await fetchUFYear(UF_CURRENT_YEAR);
+	if (!serie) return [];
+
+	const byMonth = new Map<number, UFData[]>();
+	for (const item of serie) {
+		const date = item.fecha.slice(0, 10);
+		if (date > today) continue;
+
+		const month = Number(date.slice(5, 7));
+		const entries = byMonth.get(month) ?? [];
+		entries.push(item);
+		byMonth.set(month, entries);
+	}
+
+	return Array.from(byMonth.entries())
+		.sort(([a], [b]) => a - b)
+		.map(([month, data]) => ({
+			params: { year: String(UF_CURRENT_YEAR), month: getMonthSlug(month) },
+			props: { data, month },
+		}));
+}
+
+interface Props {
+	data: UFData[];
+	month: number;
+}
+
+const { data, month } = Astro.props;
+const year = Number(Astro.params.year);
+const monthName = getMonthName(month);
+const currentMonth = Number(getTodayISO().slice(5, 7));
+const prevMonth = month > 1 ? month - 1 : null;
+const nextMonth = month < currentMonth ? month + 1 : null;
+
+const latest = data[0];
+const oldest = data[data.length - 1];
+const min = data.reduce((a, b) => (b.valor < a.valor ? b : a));
+const max = data.reduce((a, b) => (b.valor > a.valor ? b : a));
+
+const stats = [
+	{ label: 'Valor más reciente', item: latest },
+	{ label: 'Primer valor del mes', item: oldest },
+	{ label: 'Mínimo del mes', item: min },
+	{ label: 'Máximo del mes', item: max },
+];
+
+const clpFormatter = new Intl.NumberFormat('es-CL', {
+	style: 'currency',
+	currency: 'CLP',
+	minimumFractionDigits: 2,
+	maximumFractionDigits: 2,
+});
+const formatValue = (value: number) => clpFormatter.format(value);
+
+const breadcrumb = {
+	'@context': 'https://schema.org',
+	'@type': 'BreadcrumbList',
+	itemListElement: [
+		{ '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://uf2clp.cl/' },
+		{ '@type': 'ListItem', position: 2, name: 'Historial UF', item: 'https://uf2clp.cl/uf/' },
+		{ '@type': 'ListItem', position: 3, name: `UF ${year}`, item: `https://uf2clp.cl/uf/${year}/` },
+		{
+			'@type': 'ListItem',
+			position: 4,
+			name: `${monthName} ${year}`,
+			item: `https://uf2clp.cl/uf/${year}/${getMonthSlug(month)}/`,
+		},
+	],
+};
+
+const dataset = {
+	'@context': 'https://schema.org',
+	'@type': 'Dataset',
+	name: `Valor de la UF en ${monthName} de ${year}`,
+	description: `Serie diaria del valor de la UF en Chile durante ${monthName} de ${year}.`,
+	url: `https://uf2clp.cl/uf/${year}/${getMonthSlug(month)}/`,
+	temporalCoverage: `${year}-${getMonthSlug(month)}-01/${latest.fecha.slice(0, 10)}`,
+	isAccessibleForFree: true,
+	creator: {
+		'@type': 'Organization',
+		name: 'UF2CLP',
+		url: 'https://uf2clp.cl/',
+	},
+	variableMeasured: 'Valor de la Unidad de Fomento (CLP)',
+};
+---
+
+<Layout
+	title={`Valor UF ${monthName} ${year} | Tabla diaria`}
+	description={`Valor de la UF en ${monthName} de ${year}: tabla diaria, mínimos y máximos del mes y enlaces a los otros meses.`}
+	jsonLd={[breadcrumb, dataset]}
+>
+	<main class="max-w-4xl mx-auto px-6 pt-10 pb-20 space-y-8 text-slate-400">
+		<nav class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+			<a href="/" class="font-semibold text-slate-300 hover:text-blue-400 transition-colors">Inicio</a>
+			<a href="/uf" class="font-semibold text-slate-300 hover:text-blue-400 transition-colors">Historial</a>
+			<a href={`/uf/${year}`} class="font-semibold text-slate-300 hover:text-blue-400 transition-colors">UF {year}</a>
+			<a href="/uf/manana" class="font-semibold text-slate-300 hover:text-blue-400 transition-colors">UF mañana</a>
+		</nav>
+
+		<header class="space-y-3">
+			<h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight capitalize">
+				Valor de la UF en {monthName} de {year}
+			</h1>
+			<p class="leading-relaxed max-w-3xl">
+				Serie diaria de la Unidad de Fomento durante {monthName} de {year}. Los valores se muestran del más
+				reciente al más antiguo.
+			</p>
+		</header>
+
+		<section aria-label="Resumen del mes" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+			{stats.map((stat) => (
+				<Card className="p-5 bg-slate-900/50 border-slate-800">
+					<p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">{stat.label}</p>
+					<p class="text-xl font-bold text-white tabular-nums">{formatValue(stat.item.valor)}</p>
+					<p class="text-xs text-slate-400 mt-1 capitalize">{formatUfDate(stat.item.fecha)}</p>
+				</Card>
+			))}
+		</section>
+
+		<section aria-labelledby="tabla-uf">
+			<Card className="p-4 md:p-6 bg-slate-900/50 border-slate-800">
+				<h2 id="tabla-uf" class="text-xl font-bold text-white mb-4 px-2">Tabla de valores</h2>
+				<div class="overflow-x-auto">
+					<table class="w-full text-sm text-left border-collapse">
+						<thead>
+							<tr class="text-slate-300 border-b border-white/10">
+								<th scope="col" class="py-3 px-2 font-semibold">Fecha</th>
+								<th scope="col" class="py-3 px-2 font-semibold text-right">Valor UF</th>
+							</tr>
+						</thead>
+						<tbody>
+							{data.map((item) => (
+								<tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+									<td class="py-2.5 px-2 text-slate-300 capitalize">
+										<time datetime={item.fecha.slice(0, 10)}>{formatUfDate(item.fecha)}</time>
+									</td>
+									<td class="py-2.5 px-2 text-right font-medium text-white tabular-nums">
+										{formatValue(item.valor)}
+									</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
+				</div>
+			</Card>
+		</section>
+
+		<Card className="p-6 bg-slate-900/50 border-slate-800">
+			<h2 class="text-xl font-bold text-white mb-2">¿Cómo se calcula el valor de la UF?</h2>
+			<p class="leading-relaxed">
+				La UF se reajusta diariamente según la variación del IPC del mes anterior. El Banco Central de Chile
+				publica la tabla de {monthName} con anticipación, por lo que cada día tiene un valor definido.
+			</p>
+			<p class="mt-3 text-sm text-slate-400">
+				Fuente: Banco Central de Chile, replicada por
+				<a href="https://mindicador.cl/uf" target="_blank" rel="noopener noreferrer" class="underline hover:text-blue-400 transition-colors">mindicador.cl</a>.
+			</p>
+		</Card>
+
+		<section aria-labelledby="navegacion" class="space-y-4">
+			<h2 id="navegacion" class="text-xl font-bold text-white">Seguir navegando</h2>
+			<div class="flex flex-wrap gap-3">
+				{prevMonth && (
+					<a
+						href={`/uf/${year}/${getMonthSlug(prevMonth)}`}
+						class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-200 bg-slate-900/50 border border-slate-800 hover:border-blue-500/50 hover:text-blue-400 transition-colors capitalize"
+					>
+						← {getMonthName(prevMonth)}
+					</a>
+				)}
+				{nextMonth && (
+					<a
+						href={`/uf/${year}/${getMonthSlug(nextMonth)}`}
+						class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-200 bg-slate-900/50 border border-slate-800 hover:border-blue-500/50 hover:text-blue-400 transition-colors capitalize"
+					>
+						{getMonthName(nextMonth)} →
+					</a>
+				)}
+				<a
+					href={`/uf/${year}`}
+					class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-200 bg-slate-900/50 border border-slate-800 hover:border-blue-500/50 hover:text-blue-400 transition-colors"
+				>
+					Todo {year}
+				</a>
+				<a
+					href="/uf"
+					class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-200 bg-slate-900/50 border border-slate-800 hover:border-blue-500/50 hover:text-blue-400 transition-colors"
+				>
+					Historial completo
+				</a>
+				<a
+					href="/#calculadora"
+					class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-200 bg-slate-900/50 border border-slate-800 hover:border-blue-500/50 hover:text-blue-400 transition-colors"
+				>
+					Calculadora
+				</a>
+				<a
+					href="/uf/manana"
+					class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-200 bg-slate-900/50 border border-slate-800 hover:border-blue-500/50 hover:text-blue-400 transition-colors"
+				>
+					UF mañana
+				</a>
+			</div>
+		</section>
+	</main>
+</Layout>

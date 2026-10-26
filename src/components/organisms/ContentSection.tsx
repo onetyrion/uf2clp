@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card } from '../atoms/Card';
 import { FAQ_ITEMS } from '../../data/faq';
+import { UF_YEARS } from '../../data/uf-years';
 
 export const ContentSection = () => {
     return (
@@ -41,7 +42,7 @@ export const ContentSection = () => {
                     Consulta la tabla diaria del valor de la UF para cada año, con el resumen de valores mínimos y máximos.
                 </p>
                 <div className="flex flex-wrap gap-3 pt-1">
-                    {[2024, 2025, 2026].map((year) => (
+                    {UF_YEARS.slice(-3).map((year) => (
                         <a
                             key={year}
                             href={`/uf/${year}`}
@@ -50,6 +51,12 @@ export const ContentSection = () => {
                             UF {year}
                         </a>
                     ))}
+                    <a
+                        href="/uf"
+                        className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-200 bg-slate-900/50 border border-slate-800 hover:border-blue-500/50 hover:text-blue-400 transition-colors"
+                    >
+                        Ver todos los años
+                    </a>
                     <a
                         href="/uf/manana"
                         className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-200 bg-slate-900/50 border border-slate-800 hover:border-blue-500/50 hover:text-blue-400 transition-colors"

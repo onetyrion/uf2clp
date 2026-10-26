@@ -47,7 +47,7 @@ export async function fetchCurrentUF(): Promise<UFData | null> {
  * ordenados de más nuevo a más antiguo o null si la API falla, para que un
  * error de red nunca interrumpa el build.
  */
-export async function fetchUFYear(year: number): Promise<UFData[] | null> {
+async function fetchUFYearUncached(year: number): Promise<UFData[] | null> {
     try {
         const response = await fetch(`${UF_API_URL}/${year}`, {
             headers: { Accept: 'application/json' },
@@ -84,6 +84,15 @@ export async function fetchUFYear(year: number): Promise<UFData[] | null> {
         console.error(`[uf] No se pudo obtener el historial de ${year}:`, error);
         return null;
     }
+}
+
+const yearCache = new Map<number, Promise<UFData[] | null>>();
+
+export function fetchUFYear(year: number): Promise<UFData[] | null> {
+    if (!yearCache.has(year)) {
+        yearCache.set(year, fetchUFYearUncached(year));
+    }
+    return yearCache.get(year)!;
 }
 
 /**
