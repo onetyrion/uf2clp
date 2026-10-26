@@ -58,22 +58,30 @@ export default defineConfig({
           name: 'UF2CLP - Calculadora UF',
           short_name: 'UF2CLP',
           description: 'Calculadora de UF a CLP actualizada al instante.',
+          lang: 'es',
           theme_color: '#0f172a',
           background_color: '#0f172a',
           display: 'standalone',
           start_url: '/',
+          scope: '/',
           icons: [
             {
-              src: 'favicon.png',
+              src: 'icons/icon-192.png',
               sizes: '192x192',
               type: 'image/png',
-              purpose: 'any maskable'
+              purpose: 'any'
             },
             {
-              src: 'favicon.png',
+              src: 'icons/icon-512.png',
               sizes: '512x512',
               type: 'image/png',
-              purpose: 'any maskable'
+              purpose: 'any'
+            },
+            {
+              src: 'icons/maskable-512.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'maskable'
             }
           ]
         },

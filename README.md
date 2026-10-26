@@ -42,8 +42,10 @@ Aplicación moderna para la conversión de UF a CLP y monitoreo de indicadores e
 2.  **Configurar Variables de Entorno**:
     Crea un archivo `.env` en la raíz basado en `.env.example`:
     ```env
-    PUBLIC_WEATHER_API_KEY=tu_api_key_de_openweathermap
+    WEATHER_API_KEY=tu_api_key_de_openweathermap
     ```
+
+    `WEATHER_API_KEY` es un secreto de servidor: en producción debe configurarse en **Cloudflare Pages → Settings → Environment variables** (nunca con prefijo `PUBLIC_`, que lo expondría al cliente).
 
 3.  **Desarrollo**:
     ```bash

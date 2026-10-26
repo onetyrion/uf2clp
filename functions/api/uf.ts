@@ -1,31 +1,51 @@
+const CURRENT_CACHE = "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400";
+const YEAR_CACHE = "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800";
+
+function json(
+  data: unknown,
+  status: number,
+  cacheControl: string,
+  cacheStatus?: "HIT" | "MISS"
+) {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json; charset=utf-8",
+    "Cache-Control": cacheControl,
+  };
+
+  if (cacheStatus) {
+    headers["X-Cache"] = cacheStatus;
+  }
+
+  return new Response(JSON.stringify(data), { status, headers });
+}
+
 export async function onRequest(context: any) {
   const { request, env } = context;
+
+  if (request.method !== "GET") {
+    return json({ error: "Method not allowed" }, 405, "no-store");
+  }
+
   const url = new URL(request.url);
   const year = url.searchParams.get("year");
 
-  let apiUrl = "https://mindicador.cl/api/uf";
-  let cacheKey = "uf_current";
-  let ttl = 3600; // 1 hora de caché para el valor actual
-
-  if (year) {
-    apiUrl = `${apiUrl}/${year}`;
-    cacheKey = `uf_${year}`;
-    ttl = 86400; // 1 día de caché para datos históricos de años que ya pasaron
+  if (year && !/^\d{4}$/.test(year)) {
+    return json({ error: "Invalid year" }, 400, "no-store");
   }
 
-  // 1. Intentar obtener desde KV CACHE 
+  const apiUrl = year
+    ? `https://mindicador.cl/api/uf/${year}`
+    : "https://mindicador.cl/api/uf";
+  const cacheKey = year ? `uf_${year}` : "uf_current";
+  const ttl = year ? 86400 : 3600;
+  const cacheControl = year ? YEAR_CACHE : CURRENT_CACHE;
+
+  // 1. Intentar obtener desde KV CACHE
   if (env.kv_uf2clp) {
     try {
       const cachedData = await env.kv_uf2clp.get(cacheKey, "json");
       if (cachedData) {
-        return new Response(JSON.stringify(cachedData), {
-          status: 200,
-          headers: { 
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-            "X-Cache": "HIT"
-          }
-        });
+        return json(cachedData, 200, cacheControl, "HIT");
       }
     } catch (e) {
       console.error("Error leyendo desde KV Cache:", e);
@@ -35,12 +55,9 @@ export async function onRequest(context: any) {
   // 2. Si no hay cache, hacer fetch a la API externa
   try {
     const response = await fetch(apiUrl);
-    
+
     if (!response.ok) {
-      return new Response(JSON.stringify({ error: "Failed to fetch UF data" }), {
-        status: response.status,
-        headers: { "Content-Type": "application/json" }
-      });
+      return json({ error: "Failed to fetch UF data" }, response.status, "no-store");
     }
 
     const data = await response.json();
@@ -54,18 +71,9 @@ export async function onRequest(context: any) {
       }
     }
 
-    return new Response(JSON.stringify(data), {
-      status: 200,
-      headers: { 
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-        "X-Cache": "MISS"
-      }
-    });
-  } catch (error: any) {
-    return new Response(JSON.stringify({ error: error.message || "Unknown error" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" }
-    });
+    return json(data, 200, cacheControl, "MISS");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return json({ error: message }, 500, "no-store");
   }
 }
