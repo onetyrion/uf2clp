@@ -25,7 +25,7 @@ export const Dashboard = ({ initialUF }: DashboardProps) => {
                     amount={currency.amount}
                     setAmount={currency.setAmount}
                     isUfToClp={currency.isUfToClp}
-                    setIsUfToClp={currency.setIsUfToClp}
+                    toggleDirection={currency.toggleDirection}
                     result={currency.result}
                 />
 

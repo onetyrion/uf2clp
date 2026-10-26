@@ -95,6 +95,16 @@ export function useCurrency(initialUF?: UFData | null) {
         }).format(ufValue);
     }, [ufValue]);
 
+    const toggleDirection = () => {
+        if (amount !== '' && ufValue > 0) {
+            const converted = isUfToClp
+                ? Math.round(amount * ufValue)
+                : Number((amount / ufValue).toFixed(2));
+            setAmount(converted);
+        }
+        setIsUfToClp(!isUfToClp);
+    };
+
     return {
         ufValue,
         formattedUF,
@@ -103,7 +113,7 @@ export function useCurrency(initialUF?: UFData | null) {
         amount,
         setAmount,
         isUfToClp,
-        setIsUfToClp,
+        toggleDirection,
         result,
         dateStr,
         error,

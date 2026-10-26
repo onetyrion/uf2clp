@@ -1,3 +1,4 @@
+/// <reference types="vite-plugin-pwa/client" />
 /// <reference path="../.astro/types.d.ts" />
 
 interface ImportMetaEnv {

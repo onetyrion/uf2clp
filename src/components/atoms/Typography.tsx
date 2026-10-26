@@ -14,7 +14,7 @@ export const Subheading = ({ className, children }: { className?: string, childr
 );
 
 export const Label = ({ className, children }: { className?: string, children: React.ReactNode }) => (
-    <span className={cn("text-sm font-semibold opacity-50 uppercase text-slate-900 dark:text-white", className)}>
+    <span className={cn("text-sm font-semibold uppercase text-slate-500 dark:text-slate-400", className)}>
         {children}
     </span>
 );
