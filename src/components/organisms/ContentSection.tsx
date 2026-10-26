@@ -1,5 +1,6 @@
 import React from 'react';
 import { Card } from '../atoms/Card';
+import { FAQ_ITEMS } from '../../data/faq';
 
 export const ContentSection = () => {
     return (
@@ -49,20 +50,24 @@ export const ContentSection = () => {
                             UF {year}
                         </a>
                     ))}
+                    <a
+                        href="/uf/manana"
+                        className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-200 bg-slate-900/50 border border-slate-800 hover:border-blue-500/50 hover:text-blue-400 transition-colors"
+                    >
+                        UF mañana
+                    </a>
                 </div>
             </article>
 
-            <article className="space-y-4">
+            <article id="preguntas-frecuentes" className="space-y-4">
                 <h2 className="text-2xl font-bold text-white mb-4">Preguntas Frecuentes</h2>
                 <div className="space-y-6">
-                    <div>
-                        <h4 className="font-semibold text-white mb-1">¿Cuándo cambia el valor de la UF?</h4>
-                        <p>El valor cambia todos los días. El Banco Central de Chile publica la tabla de valores mensuales basada en el IPC del mes anterior.</p>
-                    </div>
-                    <div>
-                        <h4 className="font-semibold text-white mb-1">¿Cómo usar la calculadora UF a Peso?</h4>
-                        <p>Simplemente ingresa el monto en UF o Pesos en el campo de arriba. La conversión es automática y utiliza el valor oficial del día.</p>
-                    </div>
+                    {FAQ_ITEMS.map((item) => (
+                        <div key={item.question}>
+                            <h4 className="font-semibold text-white mb-1">{item.question}</h4>
+                            <p>{item.answer}</p>
+                        </div>
+                    ))}
                 </div>
             </article>
 

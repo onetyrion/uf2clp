@@ -21,7 +21,8 @@ function git(args) {
 function resolveBuildInfo() {
   const commit = (process.env.CF_PAGES_COMMIT_SHA || process.env.GITHUB_SHA || git('rev-parse HEAD')).slice(0, 7) || 'local';
   const branch = process.env.CF_PAGES_BRANCH || process.env.GITHUB_REF_NAME || git('rev-parse --abbrev-ref HEAD') || 'local';
-  const builtAt = new Date()
+  const now = new Date();
+  const builtAt = now
     .toLocaleString('es-CL', {
       timeZone: 'America/Santiago',
       day: '2-digit',
@@ -32,8 +33,9 @@ function resolveBuildInfo() {
       hourCycle: 'h23',
     })
     .replace(',', '');
+  const builtAtIso = now.toISOString();
 
-  return { commit, branch, builtAt };
+  return { commit, branch, builtAt, builtAtIso };
 }
 
 const buildInfo = resolveBuildInfo();
@@ -48,6 +50,7 @@ export default defineConfig({
       'import.meta.env.PUBLIC_BUILD_COMMIT': JSON.stringify(buildInfo.commit),
       'import.meta.env.PUBLIC_BUILD_BRANCH': JSON.stringify(buildInfo.branch),
       'import.meta.env.PUBLIC_BUILD_TIME': JSON.stringify(buildInfo.builtAt),
+      'import.meta.env.PUBLIC_BUILD_DATE': JSON.stringify(buildInfo.builtAtIso),
     },
     plugins: [
       tailwindcss(),

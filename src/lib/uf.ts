@@ -85,3 +85,16 @@ export async function fetchUFYear(year: number): Promise<UFData[] | null> {
         return null;
     }
 }
+
+/**
+ * Busca el valor de la UF para una fecha calendario (YYYY-MM-DD). El Banco
+ * Central publica los valores con anticipación, así que esto también sirve
+ * para consultar el valor de mañana.
+ */
+export async function fetchUFByDate(date: string): Promise<UFData | null> {
+    const year = Number(date.slice(0, 4));
+    if (!Number.isInteger(year)) return null;
+
+    const serie = await fetchUFYear(year);
+    return serie?.find((item) => item.fecha.slice(0, 10) === date) ?? null;
+}

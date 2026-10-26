@@ -59,11 +59,21 @@ const clpFormatter = new Intl.NumberFormat('es-CL', {
 	maximumFractionDigits: 2,
 });
 const formatValue = (value: number) => clpFormatter.format(value);
+
+const breadcrumb = {
+	'@context': 'https://schema.org',
+	'@type': 'BreadcrumbList',
+	itemListElement: [
+		{ '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://uf2clp.cl/' },
+		{ '@type': 'ListItem', position: 2, name: `Historial UF ${year}`, item: `https://uf2clp.cl/uf/${year}/` },
+	],
+};
 ---
 
 <Layout
 	title={`Valor UF ${year} | Historial y tabla de valores`}
 	description={`Historial del valor de la UF en ${year}: tabla diaria, valor mínimo y máximo, y resumen de la serie.`}
+	jsonLd={breadcrumb}
 >
 	<main class="max-w-4xl mx-auto px-6 pt-10 pb-20 space-y-8 text-slate-400">
 		<nav class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
@@ -148,6 +158,12 @@ const formatValue = (value: number) => clpFormatter.format(value);
 					class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-200 bg-slate-900/50 border border-slate-800 hover:border-blue-500/50 hover:text-blue-400 transition-colors"
 				>
 					Calculadora
+				</a>
+				<a
+					href="/uf/manana"
+					class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-200 bg-slate-900/50 border border-slate-800 hover:border-blue-500/50 hover:text-blue-400 transition-colors"
+				>
+					UF mañana
 				</a>
 				<a
 					href="/"

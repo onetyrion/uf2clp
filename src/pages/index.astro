@@ -5,14 +5,31 @@ import { Dashboard } from '../components/templates/Dashboard';
 import { ContentSection } from '../components/organisms/ContentSection';
 import { PWAInstallGuide } from '../components/molecules/PWAInstallGuide';
 import { fetchCurrentUF } from '../lib/uf';
+import { FAQ_ITEMS } from '../data/faq';
 
 const initialUF = await fetchCurrentUF();
 const buildCommit = import.meta.env.PUBLIC_BUILD_COMMIT;
 const buildBranch = import.meta.env.PUBLIC_BUILD_BRANCH;
 const buildTime = import.meta.env.PUBLIC_BUILD_TIME;
+
+const faqJsonLd = {
+	'@context': 'https://schema.org',
+	'@type': 'FAQPage',
+	mainEntity: FAQ_ITEMS.map((item) => ({
+		'@type': 'Question',
+		name: item.question,
+		acceptedAnswer: {
+			'@type': 'Answer',
+			text: item.answer,
+		},
+	})),
+};
 ---
 
-<Layout title="Calculadora UF a CLP | Valor UF Hoy en Chile | uf2clp.cl">
+<Layout
+	title="Calculadora UF a CLP | Valor UF Hoy en Chile | uf2clp.cl"
+	jsonLd={faqJsonLd}
+>
 	<Navbar client:load />
 	<Dashboard client:load initialUF={initialUF} />
     <PWAInstallGuide client:only="react" />
