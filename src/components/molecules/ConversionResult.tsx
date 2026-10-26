@@ -14,8 +14,8 @@ export const ConversionResult: React.FC<ConversionResultProps> = ({ value }) => 
     else if (length > 12) fontSize = 'text-3xl';
 
     return (
-        <div className="py-4 border-t border-slate-200 dark:border-white/10">
-            <p className="text-sm opacity-50 mb-1">Equivale a:</p>
+        <div id="resultado" role="status" aria-live="polite" aria-atomic="true" className="py-4 border-t border-slate-200 dark:border-white/10">
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Equivale a:</p>
             <div className={cn("font-bold text-blue-600 dark:text-blue-400 break-words transition-all duration-200", fontSize)}>
                 {value}
             </div>
