@@ -13,7 +13,7 @@ export function useCurrency(initialUF?: UFData | null) {
     const [amount, setAmount] = useState<number | ''>(1);
     const [isUfToClp, setIsUfToClp] = useState(true);
     const [dateStr, setDateStr] = useState(initialUF ? formatUfDate(initialUF.fecha) : '');
-    const [range, setRange] = useState<DateRange>('1M');
+    const [range, setRange] = useState<DateRange>('1Y');
 
     const [fullHistory, setFullHistory] = useState<UFData[]>([]);
 
