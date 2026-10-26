@@ -24,7 +24,7 @@ export const WeatherCondition: React.FC<WeatherConditionProps> = ({ data, loadin
                 <img src={`https://openweathermap.org/img/wn/${data.icon}@2x.png`} className="w-10 h-10" alt="Icono clima" />
             </div>
             <div className="flex-1">
-                <p className="text-sm font-semibold capitalize">{data.desc}</p>
+                <p className="text-sm font-semibold first-letter:uppercase">{data.desc}</p>
                 <p className="text-xs opacity-50">Humedad: <span>{data.humidity}</span>%</p>
             </div>
             <button onClick={onRefresh} className="p-2 opacity-30 hover:opacity-100 transition-opacity" disabled={loading}>

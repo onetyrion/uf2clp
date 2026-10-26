@@ -63,7 +63,7 @@ export const ConverterSection: React.FC<ConverterSectionProps> = ({
                             </span>
                             {loading ? <span className="opacity-50">Cargando...</span> : <span>{formattedUF}</span>}
                         </Heading>
-                        <p className="text-slate-400 capitalize">{dateStr}</p>
+                        <p className="text-slate-400 first-letter:uppercase">{dateStr}</p>
                         <p className="mt-1 text-xs text-slate-400">
                             Actualizado {import.meta.env.PUBLIC_BUILD_TIME} · Fuente:{' '}
                             <a

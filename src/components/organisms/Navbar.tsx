@@ -8,6 +8,12 @@ export const Navbar = () => {
             </a>
             <div className="flex items-center gap-4 sm:gap-6">
                 <a
+                    href="/indicadores"
+                    className="hidden md:inline text-sm font-semibold text-slate-400 hover:text-blue-400 transition-colors"
+                >
+                    Indicadores
+                </a>
+                <a
                     href="/uf"
                     className="hidden sm:inline text-sm font-semibold text-slate-400 hover:text-blue-400 transition-colors"
                 >

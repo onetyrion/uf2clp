@@ -1,0 +1,154 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { Card } from '../../components/atoms/Card';
+import { IndicatorConverter } from '../../components/molecules/IndicatorConverter';
+import ConversionTable from '../../components/organisms/ConversionTable.astro';
+import { fetchIndicator } from '../../lib/indicators';
+import { formatClp } from '../../lib/format';
+import { formatNumericDate } from '../../lib/date';
+import { INDICATOR_YEARS } from '../../data/indicators';
+
+const quote = await fetchIndicator('dolar');
+const rate = quote ? quote.valor : null;
+const valueDate = quote ? formatNumericDate(quote.fecha) : null;
+const currentYear = INDICATOR_YEARS[INDICATOR_YEARS.length - 1];
+
+const faqItems = [
+	{
+		question: '¿Cuánto está el dólar hoy en Chile?',
+		answer: quote
+			? `El último dólar observado publicado es ${formatClp(quote.valor)} (${valueDate}). El Banco Central publica el valor en días hábiles.`
+			: 'El Banco Central publica el dólar observado en días hábiles. Consulta el valor vigente en esta página.',
+	},
+	{
+		question: '¿Cómo convertir dólares a pesos?',
+		answer: 'Multiplica el monto en dólares por el valor del dólar observado. La calculadora de esta página hace la conversión en ambos sentidos.',
+	},
+	{
+		question: '¿Qué es el dólar observado?',
+		answer: 'Es el tipo de cambio oficial del dólar en Chile, publicado por el Banco Central de Chile y usado como referencia en contratos y operaciones.',
+	},
+];
+
+const faqJsonLd = {
+	'@context': 'https://schema.org',
+	'@type': 'FAQPage',
+	mainEntity: faqItems.map((item) => ({
+		'@type': 'Question',
+		name: item.question,
+		acceptedAnswer: { '@type': 'Answer', text: item.answer },
+	})),
+};
+
+const breadcrumb = {
+	'@context': 'https://schema.org',
+	'@type': 'BreadcrumbList',
+	itemListElement: [
+		{ '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://uf2clp.cl/' },
+		{ '@type': 'ListItem', position: 2, name: 'Dólar a pesos', item: 'https://uf2clp.cl/dolar/' },
+	],
+};
+---
+
+<Layout
+	title="Dólar a Pesos | Dólar Observado Hoy en Chile"
+	description={quote
+		? `Dólar observado hoy: ${formatClp(quote.valor)} (${valueDate}). Convierte dólares a pesos al instante y revisa el historial por año.`
+		: 'Convierte dólares a pesos al instante. Dólar observado y historial por año en Chile.'}
+	jsonLd={[breadcrumb, faqJsonLd]}
+>
+	<main class="max-w-5xl mx-auto px-6 pt-10 pb-20 space-y-10 text-slate-400">
+		<nav class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+			<a href="/" class="font-semibold text-slate-300 hover:text-blue-400 transition-colors">Inicio</a>
+			<a href="/indicadores" class="font-semibold text-slate-300 hover:text-blue-400 transition-colors">Indicadores</a>
+			<a href="/utm" class="font-semibold text-slate-300 hover:text-blue-400 transition-colors">UTM</a>
+			<span class="font-semibold text-slate-400">Dólar</span>
+		</nav>
+
+		<header class="space-y-3">
+			<p class="text-sm font-semibold uppercase tracking-[0.2em] text-blue-400">Dólar observado</p>
+			<h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">Dólar a pesos: dólar observado hoy</h1>
+			<p class="leading-relaxed max-w-3xl">
+				Convierte dólares a pesos chilenos con el dólar observado publicado por el Banco Central de Chile.
+				También puedes revisar la serie histórica por año.
+			</p>
+		</header>
+
+		{quote && rate !== null ? (
+			<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+				<div class="space-y-4">
+					<Card className="p-6 bg-slate-900/50 border-slate-800">
+						<p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">1 USD</p>
+						<p class="text-4xl md:text-5xl font-extrabold text-white tabular-nums">{formatClp(rate)}</p>
+						<p class="text-sm text-slate-400 mt-2">Último valor publicado: {valueDate}</p>
+						<p class="text-xs text-slate-500 mt-2">Fuente: Banco Central de Chile</p>
+					</Card>
+				</div>
+				<IndicatorConverter client:load unitLabel="USD" rate={rate} />
+			</div>
+		) : (
+			<Card className="p-6 bg-slate-900/50 border-slate-800">
+				<p class="text-slate-300">No pudimos cargar el dólar observado. Intenta nuevamente más tarde.</p>
+			</Card>
+		)}
+
+		{rate !== null && (
+			<ConversionTable
+				unit="USD"
+				rate={rate}
+				amounts={[1, 10, 100, 1000]}
+				title="Dólares a pesos: ejemplos"
+			/>
+		)}
+
+		<div class="grid md:grid-cols-2 gap-6">
+			<Card className="p-6 bg-slate-900/50 border-slate-800">
+				<h2 class="text-xl font-bold text-white mb-3">¿Qué es el dólar observado?</h2>
+				<p class="leading-relaxed">
+					Es el tipo de cambio oficial del dólar en Chile. El Banco Central lo publica en días hábiles y
+					se usa como referencia en contratos, importaciones y operaciones financieras.
+				</p>
+			</Card>
+			<Card className="p-6 bg-slate-900/50 border-slate-800">
+				<h2 class="text-xl font-bold text-white mb-3">Dólar vs UF</h2>
+				<p class="leading-relaxed">
+					El dólar mide el precio de la moneda estadounidense en pesos. La UF se reajusta según la
+					inflación y se usa en créditos y arriendos. Son indicadores distintos.
+				</p>
+			</Card>
+		</div>
+
+		<section aria-labelledby="dolar-faq" class="space-y-4">
+			<h2 id="dolar-faq" class="text-xl font-bold text-white">Preguntas frecuentes sobre el dólar</h2>
+			<div class="space-y-4">
+				{faqItems.map((item) => (
+					<div>
+						<h3 class="font-semibold text-white mb-1">{item.question}</h3>
+						<p>{item.answer}</p>
+					</div>
+				))}
+			</div>
+		</section>
+
+		<section aria-labelledby="dolar-navegacion" class="space-y-4">
+			<h2 id="dolar-navegacion" class="text-xl font-bold text-white">Seguir navegando</h2>
+			<div class="flex flex-wrap gap-3">
+				<a href={`/dolar/${currentYear}`} class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-200 bg-slate-900/50 border border-slate-800 hover:border-blue-500/50 hover:text-blue-400 transition-colors">
+					Historial dólar {currentYear}
+				</a>
+				<a href="/utm" class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-200 bg-slate-900/50 border border-slate-800 hover:border-blue-500/50 hover:text-blue-400 transition-colors">
+					UTM a pesos
+				</a>
+				<a href="/uf" class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-200 bg-slate-900/50 border border-slate-800 hover:border-blue-500/50 hover:text-blue-400 transition-colors">
+					Historial UF
+				</a>
+				<a href="/#calculadora" class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-200 bg-slate-900/50 border border-slate-800 hover:border-blue-500/50 hover:text-blue-400 transition-colors">
+					Convertir UF a pesos
+				</a>
+				<a href="/indicadores" class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-200 bg-slate-900/50 border border-slate-800 hover:border-blue-500/50 hover:text-blue-400 transition-colors">
+					Indicadores económicos
+				</a>
+			</div>
+		</section>
+	</main>
+</Layout>

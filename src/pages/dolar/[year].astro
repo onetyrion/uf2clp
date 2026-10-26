@@ -1,0 +1,169 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { Card } from '../../components/atoms/Card';
+import { fetchIndicatorYear } from '../../lib/indicators';
+import { formatClp } from '../../lib/format';
+import { formatNumericDate, getTodayISO } from '../../lib/date';
+import { INDICATOR_YEARS } from '../../data/indicators';
+import type { UFData } from '../../services/api';
+
+export async function getStaticPaths() {
+	const currentYear = INDICATOR_YEARS[INDICATOR_YEARS.length - 1];
+	const today = getTodayISO();
+
+	return Promise.all(
+		INDICATOR_YEARS.map(async (year) => {
+			const serie = await fetchIndicatorYear('dolar', year);
+			const data = serie && year === currentYear
+				? serie.filter((item) => item.fecha.slice(0, 10) <= today)
+				: serie;
+
+			return {
+				params: { year: String(year) },
+				props: { data },
+			};
+		}),
+	);
+}
+
+interface Props {
+	data: UFData[] | null;
+}
+
+const year = Number(Astro.params.year);
+const { data } = Astro.props;
+const otherYears = INDICATOR_YEARS.filter((item) => item !== year);
+
+const latest = data?.[0] ?? null;
+const oldest = data && data.length > 0 ? data[data.length - 1] : null;
+const min = data && data.length > 0 ? data.reduce((a, b) => (b.valor < a.valor ? b : a)) : null;
+const max = data && data.length > 0 ? data.reduce((a, b) => (b.valor > a.valor ? b : a)) : null;
+
+const stats = [
+	{ label: 'Dólar más reciente', item: latest },
+	{ label: 'Primer dólar del año', item: oldest },
+	{ label: 'Mínimo del año', item: min },
+	{ label: 'Máximo del año', item: max },
+].filter((stat) => stat.item !== null);
+
+const breadcrumb = {
+	'@context': 'https://schema.org',
+	'@type': 'BreadcrumbList',
+	itemListElement: [
+		{ '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://uf2clp.cl/' },
+		{ '@type': 'ListItem', position: 2, name: 'Dólar a pesos', item: 'https://uf2clp.cl/dolar/' },
+		{ '@type': 'ListItem', position: 3, name: `Dólar ${year}`, item: `https://uf2clp.cl/dolar/${year}/` },
+	],
+};
+
+const dataset = {
+	'@context': 'https://schema.org',
+	'@type': 'Dataset',
+	name: `Dólar observado en ${year}`,
+	description: `Serie diaria del dólar observado en Chile durante ${year}.`,
+	url: `https://uf2clp.cl/dolar/${year}/`,
+	temporalCoverage: `${year}-01-01/${year}-12-31`,
+	isAccessibleForFree: true,
+	creator: {
+		'@type': 'Organization',
+		name: 'UF2CLP',
+		url: 'https://uf2clp.cl/',
+	},
+	variableMeasured: 'Dólar observado (CLP)',
+};
+---
+
+<Layout
+	title={`Dólar ${year} | Historial del dólar observado`}
+	description={`Historial del dólar observado en ${year}: tabla diaria, valor mínimo y máximo, y enlaces a otros años.`}
+	jsonLd={[breadcrumb, dataset]}
+>
+	<main class="max-w-4xl mx-auto px-6 pt-10 pb-20 space-y-8 text-slate-400">
+		<nav class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+			<a href="/" class="font-semibold text-slate-300 hover:text-blue-400 transition-colors">Inicio</a>
+			<a href="/dolar" class="font-semibold text-slate-300 hover:text-blue-400 transition-colors">Dólar a pesos</a>
+			<a href="/indicadores" class="font-semibold text-slate-300 hover:text-blue-400 transition-colors">Indicadores</a>
+			<span class="font-semibold text-slate-400">Dólar {year}</span>
+		</nav>
+
+		<header class="space-y-3">
+			<h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">Valor del dólar en {year}</h1>
+			<p class="leading-relaxed max-w-3xl">
+				Serie diaria del dólar observado en Chile durante {year}. Solo se publican valores en días hábiles.
+			</p>
+		</header>
+
+		{data && data.length > 0 ? (
+			<>
+				<section aria-label="Resumen del año" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+					{stats.map((stat) => (
+						<Card className="p-5 bg-slate-900/50 border-slate-800">
+							<p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">{stat.label}</p>
+							{stat.item && (
+								<>
+									<p class="text-xl font-bold text-white tabular-nums">{formatClp(stat.item.valor)}</p>
+									<p class="text-xs text-slate-400 mt-1">{formatNumericDate(stat.item.fecha)}</p>
+								</>
+							)}
+						</Card>
+					))}
+				</section>
+
+				<section aria-labelledby="tabla-dolar">
+					<Card className="p-4 md:p-6 bg-slate-900/50 border-slate-800">
+						<h2 id="tabla-dolar" class="text-xl font-bold text-white mb-4 px-2">Tabla diaria</h2>
+						<div class="overflow-x-auto">
+							<table class="w-full text-sm text-left border-collapse">
+								<thead>
+									<tr class="text-slate-300 border-b border-white/10">
+										<th scope="col" class="py-3 px-2 font-semibold">Fecha</th>
+										<th scope="col" class="py-3 px-2 font-semibold text-right">Dólar observado (CLP)</th>
+									</tr>
+								</thead>
+								<tbody>
+									{data.map((item) => (
+										<tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+											<td class="py-2.5 px-2 text-slate-300">
+												<time datetime={item.fecha.slice(0, 10)}>{formatNumericDate(item.fecha)}</time>
+											</td>
+											<td class="py-2.5 px-2 text-right font-medium text-white tabular-nums">
+												{formatClp(item.valor)}
+											</td>
+										</tr>
+									))}
+								</tbody>
+							</table>
+						</div>
+					</Card>
+				</section>
+			</>
+		) : (
+			<Card className="p-6 bg-slate-900/50 border-slate-800">
+				<p class="text-slate-300">No fue posible cargar el historial del dólar para {year}.</p>
+			</Card>
+		)}
+
+		<section aria-labelledby="otros-anos" class="space-y-4">
+			<h2 id="otros-anos" class="text-xl font-bold text-white">Otros años</h2>
+			<div class="flex flex-wrap gap-3">
+				{otherYears.map((item) => (
+					<a
+						href={`/dolar/${item}`}
+						class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-200 bg-slate-900/50 border border-slate-800 hover:border-blue-500/50 hover:text-blue-400 transition-colors"
+					>
+						Dólar {item}
+					</a>
+				))}
+				<a href="/dolar" class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-200 bg-slate-900/50 border border-slate-800 hover:border-blue-500/50 hover:text-blue-400 transition-colors">
+					Dólar hoy
+				</a>
+				<a href="/utm" class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-200 bg-slate-900/50 border border-slate-800 hover:border-blue-500/50 hover:text-blue-400 transition-colors">
+					UTM a pesos
+				</a>
+				<a href="/indicadores" class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-200 bg-slate-900/50 border border-slate-800 hover:border-blue-500/50 hover:text-blue-400 transition-colors">
+					Indicadores económicos
+				</a>
+			</div>
+		</section>
+	</main>
+</Layout>

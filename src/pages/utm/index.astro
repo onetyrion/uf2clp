@@ -1,0 +1,156 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { Card } from '../../components/atoms/Card';
+import { IndicatorConverter } from '../../components/molecules/IndicatorConverter';
+import ConversionTable from '../../components/organisms/ConversionTable.astro';
+import { fetchIndicator } from '../../lib/indicators';
+import { formatClp } from '../../lib/format';
+import { formatMonthYear } from '../../lib/date';
+import { INDICATOR_YEARS } from '../../data/indicators';
+
+const quote = await fetchIndicator('utm');
+const rate = quote ? quote.valor : null;
+const monthLabel = quote ? formatMonthYear(quote.fecha) : null;
+const currentYear = INDICATOR_YEARS[INDICATOR_YEARS.length - 1];
+
+const faqItems = [
+	{
+		question: '¿Cuánto vale la UTM hoy?',
+		answer: quote
+			? `La UTM vigente es ${formatClp(quote.valor)} (${monthLabel}). La UTM se actualiza una vez al mes.`
+			: 'La UTM se actualiza una vez al mes. Consulta el valor vigente en esta página.',
+	},
+	{
+		question: '¿Cómo convertir UTM a pesos?',
+		answer: 'Multiplica el monto en UTM por el valor vigente de la UTM del mes. La calculadora de esta página hace el cálculo automáticamente.',
+	},
+	{
+		question: '¿La UTM es lo mismo que la UF?',
+		answer: 'No. La UF se reajusta diariamente según el IPC y se usa en créditos, arriendos y seguros. La UTM es una unidad tributaria mensual que se usa para impuestos, multas y trámites.',
+	},
+];
+
+const faqJsonLd = {
+	'@context': 'https://schema.org',
+	'@type': 'FAQPage',
+	mainEntity: faqItems.map((item) => ({
+		'@type': 'Question',
+		name: item.question,
+		acceptedAnswer: { '@type': 'Answer', text: item.answer },
+	})),
+};
+
+const breadcrumb = {
+	'@context': 'https://schema.org',
+	'@type': 'BreadcrumbList',
+	itemListElement: [
+		{ '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://uf2clp.cl/' },
+		{ '@type': 'ListItem', position: 2, name: 'UTM a pesos', item: 'https://uf2clp.cl/utm/' },
+	],
+};
+---
+
+<Layout
+	title="UTM a Pesos | Valor UTM Hoy en Chile"
+	description={quote
+		? `Valor de la UTM hoy: ${formatClp(quote.valor)} (${monthLabel}). Convierte UTM a pesos al instante y revisa el historial por año.`
+		: 'Convierte UTM a pesos al instante. Valor de la UTM vigente y historial por año en Chile.'}
+	jsonLd={[breadcrumb, faqJsonLd]}
+>
+	<main class="max-w-5xl mx-auto px-6 pt-10 pb-20 space-y-10 text-slate-400">
+		<nav class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+			<a href="/" class="font-semibold text-slate-300 hover:text-blue-400 transition-colors">Inicio</a>
+			<a href="/indicadores" class="font-semibold text-slate-300 hover:text-blue-400 transition-colors">Indicadores</a>
+			<a href="/uf" class="font-semibold text-slate-300 hover:text-blue-400 transition-colors">Historial UF</a>
+			<span class="font-semibold text-slate-400">UTM</span>
+		</nav>
+
+		<header class="space-y-3">
+			<p class="text-sm font-semibold uppercase tracking-[0.2em] text-blue-400">Valor vigente</p>
+			<h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">UTM a pesos: valor de la UTM hoy</h1>
+			<p class="leading-relaxed max-w-3xl">
+				La UTM (Unidad Tributaria Mensual) se usa para impuestos, multas y trámites. Su valor se publica
+				una vez al mes y se expresa en pesos chilenos.
+			</p>
+		</header>
+
+		{quote && rate !== null ? (
+			<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+				<div class="space-y-4">
+					<Card className="p-6 bg-slate-900/50 border-slate-800">
+						<p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">1 UTM</p>
+						<p class="text-4xl md:text-5xl font-extrabold text-white tabular-nums">{formatClp(rate)}</p>
+						<p class="text-sm text-slate-400 mt-2">Vigente en {monthLabel}</p>
+						<p class="text-xs text-slate-500 mt-2">
+							Fuente: SII · Datos replicados por mindicador.cl
+						</p>
+					</Card>
+				</div>
+				<IndicatorConverter client:load unitLabel="UTM" rate={rate} />
+			</div>
+		) : (
+			<Card className="p-6 bg-slate-900/50 border-slate-800">
+				<p class="text-slate-300">No pudimos cargar el valor de la UTM. Intenta nuevamente más tarde.</p>
+			</Card>
+		)}
+
+		{rate !== null && (
+			<ConversionTable
+				unit="UTM"
+				rate={rate}
+				amounts={[1, 5, 10, 50, 100, 500]}
+				title="UTM a pesos: ejemplos"
+			/>
+		)}
+
+		<div class="grid md:grid-cols-2 gap-6">
+			<Card className="p-6 bg-slate-900/50 border-slate-800">
+				<h2 class="text-xl font-bold text-white mb-3">¿Qué es la UTM?</h2>
+				<p class="leading-relaxed">
+					La Unidad Tributaria Mensual es una unidad de cuenta expresada en pesos que el SII utiliza para
+					calcular impuestos, multas y otros trámites. Su valor cambia cada mes.
+				</p>
+			</Card>
+			<Card className="p-6 bg-slate-900/50 border-slate-800">
+				<h2 class="text-xl font-bold text-white mb-3">UTM vs UF</h2>
+				<p class="leading-relaxed">
+					La UF se reajusta a diario según el IPC y se usa en créditos y arriendos. La UTM es mensual y se
+					usa principalmente en el ámbito tributario. Ambas se expresan en pesos chilenos.
+				</p>
+			</Card>
+		</div>
+
+		<section aria-labelledby="utm-faq" class="space-y-4">
+			<h2 id="utm-faq" class="text-xl font-bold text-white">Preguntas frecuentes sobre la UTM</h2>
+			<div class="space-y-4">
+				{faqItems.map((item) => (
+					<div>
+						<h3 class="font-semibold text-white mb-1">{item.question}</h3>
+						<p>{item.answer}</p>
+					</div>
+				))}
+			</div>
+		</section>
+
+		<section aria-labelledby="utm-navegacion" class="space-y-4">
+			<h2 id="utm-navegacion" class="text-xl font-bold text-white">Seguir navegando</h2>
+			<div class="flex flex-wrap gap-3">
+				<a href={`/utm/${currentYear}`} class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-200 bg-slate-900/50 border border-slate-800 hover:border-blue-500/50 hover:text-blue-400 transition-colors">
+					Historial UTM {currentYear}
+				</a>
+				<a href="/dolar" class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-200 bg-slate-900/50 border border-slate-800 hover:border-blue-500/50 hover:text-blue-400 transition-colors">
+					Dólar a pesos
+				</a>
+				<a href="/uf" class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-200 bg-slate-900/50 border border-slate-800 hover:border-blue-500/50 hover:text-blue-400 transition-colors">
+					Historial UF
+				</a>
+				<a href="/#calculadora" class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-200 bg-slate-900/50 border border-slate-800 hover:border-blue-500/50 hover:text-blue-400 transition-colors">
+					Convertir UF a pesos
+				</a>
+				<a href="/indicadores" class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-200 bg-slate-900/50 border border-slate-800 hover:border-blue-500/50 hover:text-blue-400 transition-colors">
+					Indicadores económicos
+				</a>
+			</div>
+		</section>
+	</main>
+</Layout>
