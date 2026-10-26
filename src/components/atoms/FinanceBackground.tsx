@@ -1,5 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 
+const MOBILE_BREAKPOINT = 768;
+const MAX_PARTICLES_MOBILE = 40;
+const MAX_PARTICLES_DESKTOP = 70;
+const CONNECTION_DISTANCE = 150;
+const CONNECTION_DISTANCE_SQ = CONNECTION_DISTANCE * CONNECTION_DISTANCE;
+
 export const FinanceBackground = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -13,7 +19,6 @@ export const FinanceBackground = () => {
         let width = window.innerWidth;
         let height = window.innerHeight;
 
-        // Resize handler
         const resize = () => {
             width = window.innerWidth;
             height = window.innerHeight;
@@ -23,7 +28,6 @@ export const FinanceBackground = () => {
         window.addEventListener('resize', resize);
         resize();
 
-        // Mouse state
         const mouse = { x: 0, y: 0 };
         const handleMouseMove = (e: MouseEvent) => {
             mouse.x = e.clientX;
@@ -31,7 +35,6 @@ export const FinanceBackground = () => {
         };
         window.addEventListener('mousemove', handleMouseMove);
 
-        // Particles
         class Particle {
             x: number;
             y: number;
@@ -46,29 +49,27 @@ export const FinanceBackground = () => {
                 this.vx = (Math.random() - 0.5) * 0.5;
                 this.vy = (Math.random() - 0.5) * 0.5;
                 this.size = Math.random() * 2 + 1;
-                // Finance colors: Green/Blue hints
                 const isGreen = Math.random() > 0.5;
                 this.color = isGreen
-                    ? `rgba(16, 185, 129, ${Math.random() * 0.5 + 0.1})` // Emerald
-                    : `rgba(59, 130, 246, ${Math.random() * 0.5 + 0.1})`; // Blue
+                    ? `rgba(16, 185, 129, ${Math.random() * 0.5 + 0.1})`
+                    : `rgba(59, 130, 246, ${Math.random() * 0.5 + 0.1})`;
             }
 
             update() {
                 this.x += this.vx;
                 this.y += this.vy;
 
-                // Mouse interaction (gentle repulsion)
                 const dx = mouse.x - this.x;
                 const dy = mouse.y - this.y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist < 150) {
-                    const angle = Math.atan2(dy, dx);
-                    const force = (150 - dist) / 150;
-                    this.vx -= Math.cos(angle) * force * 0.05;
-                    this.vy -= Math.sin(angle) * force * 0.05;
+                const distSq = dx * dx + dy * dy;
+
+                if (distSq < CONNECTION_DISTANCE_SQ && distSq > 0) {
+                    const dist = Math.sqrt(distSq);
+                    const force = (CONNECTION_DISTANCE - dist) / CONNECTION_DISTANCE;
+                    this.vx -= (dx / dist) * force * 0.05;
+                    this.vy -= (dy / dist) * force * 0.05;
                 }
 
-                // Bounce/Wrap
                 if (this.x < 0 || this.x > width) this.vx *= -1;
                 if (this.y < 0 || this.y > height) this.vy *= -1;
             }
@@ -83,32 +84,32 @@ export const FinanceBackground = () => {
         }
 
         const particles: Particle[] = [];
-        const particleCount = Math.min(Math.floor((width * height) / 15000), 100);
+        const maxParticles = width < MOBILE_BREAKPOINT
+            ? MAX_PARTICLES_MOBILE
+            : MAX_PARTICLES_DESKTOP;
+        const particleCount = Math.min(Math.floor((width * height) / 15000), maxParticles);
 
         for (let i = 0; i < particleCount; i++) {
             particles.push(new Particle());
         }
 
-        // Animation loop
-        let animationFrameId: number;
-        const animate = () => {
+        const renderFrame = (update: boolean) => {
             ctx.clearRect(0, 0, width, height);
 
-            // Draw connections
             particles.forEach((p, index) => {
-                p.update();
+                if (update) p.update();
                 p.draw();
 
-                // Connect nearby particles
                 for (let j = index + 1; j < particles.length; j++) {
                     const p2 = particles[j];
                     const dx = p.x - p2.x;
                     const dy = p.y - p2.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    const distSq = dx * dx + dy * dy;
 
-                    if (distance < 150) {
+                    if (distSq < CONNECTION_DISTANCE_SQ) {
+                        const distance = Math.sqrt(distSq);
                         ctx.beginPath();
-                        ctx.strokeStyle = `rgba(148, 163, 184, ${0.1 * (1 - distance / 150)})`; // Slate-400 equivalent
+                        ctx.strokeStyle = `rgba(148, 163, 184, ${0.1 * (1 - distance / CONNECTION_DISTANCE)})`;
                         ctx.lineWidth = 1;
                         ctx.moveTo(p.x, p.y);
                         ctx.lineTo(p2.x, p2.y);
@@ -116,15 +117,54 @@ export const FinanceBackground = () => {
                     }
                 }
             });
+        };
 
+        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        let animationFrameId: number | null = null;
+
+        const stop = () => {
+            if (animationFrameId !== null) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+        };
+
+        const start = () => {
+            if (reducedMotion || animationFrameId !== null) return;
+
+            const animate = () => {
+                renderFrame(true);
+                animationFrameId = requestAnimationFrame(animate);
+            };
             animationFrameId = requestAnimationFrame(animate);
         };
-        animate();
+
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                stop();
+            } else {
+                start();
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        const handleResize = () => {
+            if (reducedMotion) renderFrame(false);
+        };
+        window.addEventListener('resize', handleResize);
+
+        if (reducedMotion) {
+            renderFrame(false);
+        } else {
+            start();
+        }
 
         return () => {
             window.removeEventListener('resize', resize);
+            window.removeEventListener('resize', handleResize);
             window.removeEventListener('mousemove', handleMouseMove);
-            cancelAnimationFrame(animationFrameId);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            stop();
         };
     }, []);
 

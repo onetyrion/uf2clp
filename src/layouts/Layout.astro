@@ -4,9 +4,14 @@ import { FinanceBackground } from "../components/atoms/FinanceBackground";
 
 interface Props {
   title: string;
+  description?: string;
 }
 
-const { title } = Astro.props;
+const { title, description } = Astro.props;
+const metaDescription = description ??
+  "Calculadora de UF a CLP actualizada al instante. Conversor simple, rápido y preciso del valor de la UF hoy en Chile. Gráficos históricos y tendencias.";
+const socialDescription = description ??
+  "Calculadora de UF a CLP actualizada al instante. Conversor simple, rápido y preciso del valor de la UF hoy en Chile.";
 ---
 
 <!doctype html>
@@ -50,10 +55,7 @@ const { title } = Astro.props;
     <!-- SEO Primary Tags -->
     <title>{title}</title>
     <meta name="title" content={title} />
-    <meta
-      name="description"
-      content="Calculadora de UF a CLP actualizada al instante. Conversor simple, rápido y preciso del valor de la UF hoy en Chile. Gráficos históricos y tendencias."
-    />
+    <meta name="description" content={metaDescription} />
     <meta
       name="keywords"
       content="calculadora uf, uf2clp, valor uf hoy, uf a pesos, conversor uf, indicadores economicos chile, unidad de fomento"
@@ -64,19 +66,13 @@ const { title } = Astro.props;
     <meta property="og:type" content="website" />
     <meta property="og:url" content={Astro.url} />
     <meta property="og:title" content={title} />
-    <meta
-      property="og:description"
-      content="Calculadora de UF a CLP actualizada al instante. Conversor simple, rápido y preciso del valor de la UF hoy en Chile."
-    />
+    <meta property="og:description" content={socialDescription} />
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:url" content={Astro.url} />
     <meta property="twitter:title" content={title} />
-    <meta
-      property="twitter:description"
-      content="Calculadora de UF a CLP actualizada al instante. Conversor simple, rápido y preciso del valor de la UF hoy en Chile."
-    />
+    <meta property="twitter:description" content={socialDescription} />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

@@ -9,6 +9,7 @@ import sitemap from '@astrojs/sitemap';
 
 import { VitePWA } from 'vite-plugin-pwa';
 
+/** @param {string} args */
 function git(args) {
   try {
     return execSync(`git ${args}`, { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();

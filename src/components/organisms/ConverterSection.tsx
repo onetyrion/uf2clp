@@ -24,7 +24,7 @@ export const ConverterSection: React.FC<ConverterSectionProps> = ({
     loading, error, ufValue, formattedUF, dateStr, amount, setAmount, isUfToClp, setIsUfToClp, result
 }) => {
     return (
-        <section className="space-y-8">
+        <section id="calculadora" className="space-y-8">
             <div>
                 {error && ufValue === 0 ? (
                     <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 rounded-xl text-sm font-medium mb-2">
