@@ -38,6 +38,18 @@ export const ConverterSection: React.FC<ConverterSectionProps> = ({
                             {loading ? <span className="opacity-20">Cargando...</span> : <span>{formattedUF}</span>}
                         </Heading>
                         <p className="opacity-60 capitalize">{dateStr}</p>
+                        <p className="mt-1 text-xs opacity-50">
+                            Actualizado {import.meta.env.PUBLIC_BUILD_TIME} · Fuente:{' '}
+                            <a
+                                href="https://mindicador.cl/uf"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="underline hover:text-blue-400 transition-colors"
+                            >
+                                mindicador.cl
+                            </a>{' '}
+                            · Banco Central de Chile
+                        </p>
                         {error && ufValue > 0 && (
                             <p className="mt-2 text-xs text-amber-500">
                                 No se pudo actualizar el valor. Mostrando el último dato disponible.
