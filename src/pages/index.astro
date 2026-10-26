@@ -3,11 +3,23 @@ import Layout from '../layouts/Layout.astro';
 import { Navbar } from '../components/organisms/Navbar';
 import { Dashboard } from '../components/templates/Dashboard';
 import { ContentSection } from '../components/organisms/ContentSection';
+import ConversionExamples from '../components/organisms/ConversionExamples.astro';
 import { PWAInstallGuide } from '../components/molecules/PWAInstallGuide';
 import { fetchCurrentUF } from '../lib/uf';
 import { FAQ_ITEMS } from '../data/faq';
 
 const initialUF = await fetchCurrentUF();
+const clpFormatter = new Intl.NumberFormat('es-CL', {
+	style: 'currency',
+	currency: 'CLP',
+	minimumFractionDigits: 2,
+	maximumFractionDigits: 2,
+});
+const ufValue = initialUF ? clpFormatter.format(initialUF.valor) : null;
+const ufDate = initialUF ? initialUF.fecha.slice(0, 10).split('-').reverse().join('/') : null;
+const description = ufValue && ufDate
+	? `Convierte UF a pesos al instante. Valor UF hoy: ${ufValue} (${ufDate}). Historial por año y valor de mañana.`
+	: 'Convierte UF a pesos al instante. Calculadora UF a CLP, historial por año y valor de mañana.';
 const buildCommit = import.meta.env.PUBLIC_BUILD_COMMIT;
 const buildBranch = import.meta.env.PUBLIC_BUILD_BRANCH;
 const buildTime = import.meta.env.PUBLIC_BUILD_TIME;
@@ -27,11 +39,13 @@ const faqJsonLd = {
 ---
 
 <Layout
-	title="Calculadora UF a CLP | Valor UF Hoy en Chile | uf2clp.cl"
+	title="UF a Pesos | Calculadora y Valor UF Hoy en Chile"
+	description={description}
 	jsonLd={faqJsonLd}
 >
 	<Navbar client:load />
 	<Dashboard client:load initialUF={initialUF} />
+	<ConversionExamples ufValue={initialUF?.valor ?? null} fecha={initialUF?.fecha ?? null} />
     <PWAInstallGuide client:only="react" />
     <ContentSection />
 	<footer class="text-center py-10 text-sm flex flex-col items-center justify-center gap-2">

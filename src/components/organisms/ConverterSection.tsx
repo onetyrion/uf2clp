@@ -56,9 +56,11 @@ export const ConverterSection: React.FC<ConverterSectionProps> = ({
                     </div>
                 ) : (
                     <>
-                        {!loading && <PulseIndicator label="VALOR UF HOY" />}
+                        {!loading && <PulseIndicator label="VALOR OFICIAL" />}
                         <Heading as="h1">
-                            <span className="sr-only">Valor UF hoy en Chile: </span>
+                            <span className="block text-sm font-bold uppercase tracking-[0.2em] text-blue-400 mb-3">
+                                UF a pesos · valor hoy
+                            </span>
                             {loading ? <span className="opacity-50">Cargando...</span> : <span>{formattedUF}</span>}
                         </Heading>
                         <p className="text-slate-400 capitalize">{dateStr}</p>

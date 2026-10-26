@@ -13,6 +13,14 @@ export const FAQ_ITEMS: FaqItem[] = [
         answer: 'Ingresa el monto en UF o en pesos en el campo de la calculadora. La conversión es automática y usa el valor oficial del día. Puedes alternar la dirección con el botón central.',
     },
     {
+        question: '¿Cómo convertir UF a pesos?',
+        answer: 'Multiplica el monto en UF por el valor vigente de la UF del día. Por ejemplo, si la UF está en $41.000, 10 UF equivalen a $410.000. La calculadora de uf2clp.cl hace el cálculo automáticamente y también puedes revisar la tabla de ejemplos de esta página.',
+    },
+    {
+        question: '¿Cuánto es 1 UF en pesos?',
+        answer: '1 UF equivale al valor vigente publicado por el Banco Central de Chile para el día. Revisa el valor de hoy en la calculadora o en la tabla de conversión de UF a pesos de esta página.',
+    },
+    {
         question: '¿Quién publica el valor de la UF?',
         answer: 'El Banco Central de Chile calcula y publica el valor de la UF. Sitios como mindicador.cl replican esa serie y uf2clp.cl la usa para actualizar la calculadora.',
     },
