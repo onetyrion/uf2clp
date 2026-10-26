@@ -6,18 +6,20 @@ export function useWeather() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Load from cache on mount
+    // Solo hidrata desde caché. La geolocalización se pide únicamente cuando
+    // el usuario activa el widget explícitamente.
     useEffect(() => {
         const cached = localStorage.getItem('weather_cache');
-        if (cached) {
+        if (!cached) return;
+
+        try {
             const parsed = JSON.parse(cached);
             if ((Date.now() - parsed.timestamp) < 1800000) { // 30 mins
                 setWeatherData(parsed.data);
-                return;
             }
+        } catch {
+            localStorage.removeItem('weather_cache');
         }
-        // If no cache or expired, fetch automatically
-        requestWeather();
     }, []);
 
     const requestWeather = () => {
