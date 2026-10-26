@@ -1,0 +1,33 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { Card } from '../components/atoms/Card';
+---
+
+<Layout
+	title="Página no encontrada | uf2clp.cl"
+	description="La página que buscas no existe o cambió de ubicación. Vuelve a la calculadora de UF a CLP o revisa el historial de la UF."
+>
+	<main class="min-h-screen flex items-center justify-center px-6 py-16">
+		<Card className="max-w-xl w-full p-8 md:p-10 text-center bg-slate-900/50 border-slate-800">
+			<p class="text-sm font-semibold uppercase tracking-[0.2em] text-blue-400 mb-4">Error 404</p>
+			<h1 class="text-3xl md:text-4xl font-extrabold text-white mb-3">Página no encontrada</h1>
+			<p class="text-slate-400 leading-relaxed mb-8">
+				La página que buscas no existe o cambió de ubicación. Vuelve al inicio para usar la calculadora o revisa el historial de la UF.
+			</p>
+			<div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+				<a
+					href="/"
+					class="w-full sm:w-auto px-5 py-3 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-500 transition-colors"
+				>
+					Ir a la calculadora
+				</a>
+				<a
+					href="/uf/2026"
+					class="w-full sm:w-auto px-5 py-3 rounded-xl text-sm font-semibold text-slate-200 bg-slate-900/60 border border-slate-800 hover:border-blue-500/50 hover:text-blue-400 transition-colors"
+				>
+					Ver historial UF 2026
+				</a>
+			</div>
+		</Card>
+	</main>
+</Layout>
