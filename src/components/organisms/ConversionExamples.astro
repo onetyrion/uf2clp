@@ -1,0 +1,70 @@
+---
+import { Card } from '../atoms/Card';
+import { formatUfDate } from '../../lib/date';
+
+interface Props {
+	ufValue: number | null;
+	fecha: string | null;
+}
+
+const { ufValue, fecha } = Astro.props;
+const amounts = [1, 5, 10, 50, 100, 500, 1000];
+const ufFormatter = new Intl.NumberFormat('es-CL');
+const clpFormatter = new Intl.NumberFormat('es-CL', {
+	style: 'currency',
+	currency: 'CLP',
+	minimumFractionDigits: 2,
+	maximumFractionDigits: 2,
+});
+const rows = ufValue !== null
+	? amounts.map((uf) => ({ uf, pesos: clpFormatter.format(uf * ufValue) }))
+	: [];
+---
+
+<section id="convertir-uf-a-pesos" aria-labelledby="convertir-uf-a-pesos-titulo" class="max-w-4xl mx-auto px-6 pb-16 space-y-4">
+	<h2 id="convertir-uf-a-pesos-titulo" class="text-2xl font-bold text-white">Convertir UF a pesos</h2>
+	<p class="text-slate-400 leading-relaxed">
+		Para convertir UF a pesos, multiplica el monto en UF por el valor vigente de la UF del día.
+		{ufValue !== null && fecha && (
+			<>
+				Valor usado: <strong class="text-slate-200">{clpFormatter.format(ufValue)}</strong> al{' '}
+				<span class="capitalize">{formatUfDate(fecha)}</span>.
+			</>
+		)}
+		{' '}También puedes usar la{' '}
+		<a href="/#calculadora" class="text-blue-400 underline hover:text-blue-300 transition-colors">
+			calculadora de UF a pesos
+		</a>{' '}
+		para cualquier monto.
+	</p>
+
+	{rows.length > 0 ? (
+		<Card className="p-4 md:p-6 bg-slate-900/50 border-slate-800">
+			<div class="overflow-x-auto">
+				<table class="w-full text-sm text-left border-collapse">
+					<caption class="sr-only">Ejemplos de conversión de UF a pesos chilenos</caption>
+					<thead>
+						<tr class="text-slate-300 border-b border-white/10">
+							<th scope="col" class="py-3 px-2 font-semibold">UF</th>
+							<th scope="col" class="py-3 px-2 font-semibold text-right">Pesos chilenos (CLP)</th>
+						</tr>
+					</thead>
+					<tbody>
+						{rows.map((row) => (
+							<tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+								<td class="py-2.5 px-2 text-slate-300 tabular-nums">{ufFormatter.format(row.uf)} UF</td>
+								<td class="py-2.5 px-2 text-right font-medium text-white tabular-nums">{row.pesos}</td>
+							</tr>
+						))}
+					</tbody>
+				</table>
+			</div>
+		</Card>
+	) : (
+		<Card className="p-6 bg-slate-900/50 border-slate-800">
+			<p class="text-slate-300">
+				No pudimos cargar el valor de la UF. Puedes intentarlo nuevamente desde la calculadora.
+			</p>
+		</Card>
+	)}
+</section>
