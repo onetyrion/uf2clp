@@ -1,4 +1,5 @@
 // @ts-check
+import { execSync } from 'node:child_process';
 import { defineConfig } from 'astro/config';
 
 import react from '@astrojs/react';
@@ -8,12 +9,45 @@ import sitemap from '@astrojs/sitemap';
 
 import { VitePWA } from 'vite-plugin-pwa';
 
+function git(args) {
+  try {
+    return execSync(`git ${args}`, { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+  } catch {
+    return '';
+  }
+}
+
+function resolveBuildInfo() {
+  const commit = (process.env.CF_PAGES_COMMIT_SHA || process.env.GITHUB_SHA || git('rev-parse HEAD')).slice(0, 7) || 'local';
+  const branch = process.env.CF_PAGES_BRANCH || process.env.GITHUB_REF_NAME || git('rev-parse --abbrev-ref HEAD') || 'local';
+  const builtAt = new Date()
+    .toLocaleString('es-CL', {
+      timeZone: 'America/Santiago',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+    })
+    .replace(',', '');
+
+  return { commit, branch, builtAt };
+}
+
+const buildInfo = resolveBuildInfo();
+
 // https://astro.build/config
 export default defineConfig({
   site: 'https://uf2clp.cl',
   integrations: [react(), sitemap()],
 
   vite: {
+    define: {
+      'import.meta.env.PUBLIC_BUILD_COMMIT': JSON.stringify(buildInfo.commit),
+      'import.meta.env.PUBLIC_BUILD_BRANCH': JSON.stringify(buildInfo.branch),
+      'import.meta.env.PUBLIC_BUILD_TIME': JSON.stringify(buildInfo.builtAt),
+    },
     plugins: [
       tailwindcss(),
       VitePWA({
