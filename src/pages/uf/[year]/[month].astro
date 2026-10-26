@@ -109,7 +109,7 @@ const dataset = {
 		</nav>
 
 		<header class="space-y-3">
-			<h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight capitalize">
+			<h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight first-letter:uppercase">
 				Valor de la UF en {monthName} de {year}
 			</h1>
 			<p class="leading-relaxed max-w-3xl">
@@ -123,7 +123,7 @@ const dataset = {
 				<Card className="p-5 bg-slate-900/50 border-slate-800">
 					<p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">{stat.label}</p>
 					<p class="text-xl font-bold text-white tabular-nums">{formatValue(stat.item.valor)}</p>
-					<p class="text-xs text-slate-400 mt-1 capitalize">{formatUfDate(stat.item.fecha)}</p>
+					<p class="text-xs text-slate-400 mt-1 first-letter:uppercase">{formatUfDate(stat.item.fecha)}</p>
 				</Card>
 			))}
 		</section>
@@ -142,7 +142,7 @@ const dataset = {
 						<tbody>
 							{data.map((item) => (
 								<tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
-									<td class="py-2.5 px-2 text-slate-300 capitalize">
+									<td class="py-2.5 px-2 text-slate-300 first-letter:uppercase">
 										<time datetime={item.fecha.slice(0, 10)}>{formatUfDate(item.fecha)}</time>
 									</td>
 									<td class="py-2.5 px-2 text-right font-medium text-white tabular-nums">

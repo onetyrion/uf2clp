@@ -28,7 +28,7 @@ const rows = ufValue !== null
 		{ufValue !== null && fecha && (
 			<>
 				Valor usado: <strong class="text-slate-200">{clpFormatter.format(ufValue)}</strong> al{' '}
-				<span class="capitalize">{formatUfDate(fecha)}</span>.
+				<span class="first-letter:uppercase">{formatUfDate(fecha)}</span>.
 			</>
 		)}
 		{' '}También puedes usar la{' '}
